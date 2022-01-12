@@ -17,6 +17,7 @@ class FieldActivityModel {
     this.taluka,
     this.village,
     this.doName,
+    this.doID,
     this.countParticipants,
     this.male,
     this.female,
@@ -35,12 +36,13 @@ class FieldActivityModel {
   String taluka;
   String village;
   String doName;
+  String doID;
   int countParticipants;
   int male;
   int female;
   String details;
-  List<AttendanceSheet> images;
-  List<AttendanceSheet> attendanceSheet;
+  List<AttachmentsList> images;
+  List<AttendanceSheets> attendanceSheet;
   String mapLat;
   String mapLong;
   String mapLocation;
@@ -53,12 +55,13 @@ class FieldActivityModel {
     taluka: json["taluka"],
     village: json["village"],
     doName: json["DO_name"],
+    doID: json["DO_id"],
     countParticipants: json["count_participants"],
     male: json["male"],
     female: json["female"],
     details: json["details"],
-    images: List<AttendanceSheet>.from(json["images"].map((x) => AttendanceSheet.fromMap(x))),
-    attendanceSheet: List<AttendanceSheet>.from(json["attendance_sheet"].map((x) => AttendanceSheet.fromMap(x))),
+    images: List<AttachmentsList>.from(json["images"].map((x) => AttachmentsList.fromMap(x))),
+    attendanceSheet: List<AttendanceSheets>.from(json["attendance_sheet"].map((x) => AttendanceSheets.fromMap(x))),
     mapLat: json["map_lat"],
     mapLong: json["map_long"],
     mapLocation: json["map_location"],
@@ -72,6 +75,7 @@ class FieldActivityModel {
     "taluka": taluka,
     "village": village,
     "DO_name": doName,
+    "DO_id": doID,
     "count_participants": countParticipants,
     "male": male,
     "female": female,
@@ -84,8 +88,8 @@ class FieldActivityModel {
   };
 }
 
-class AttendanceSheet {
-  AttendanceSheet({
+class AttendanceSheets {
+  AttendanceSheets({
     this.image,
     this.extension,
   });
@@ -93,7 +97,27 @@ class AttendanceSheet {
   String image;
   String extension;
 
-  factory AttendanceSheet.fromMap(Map<String, dynamic> json) => AttendanceSheet(
+  factory AttendanceSheets.fromMap(Map<String, dynamic> json) => AttendanceSheets(
+    image: json["image"],
+    extension: json["extension"],
+  );
+
+  Map<String, dynamic> toMap() => {
+    "image": image,
+    "extension": extension,
+  };
+}
+
+class AttachmentsList {
+  AttachmentsList({
+    this.image,
+    this.extension,
+  });
+
+  String image;
+  String extension;
+
+  factory AttachmentsList.fromMap(Map<String, dynamic> json) => AttachmentsList(
     image: json["image"],
     extension: json["extension"],
   );

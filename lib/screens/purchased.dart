@@ -16,7 +16,6 @@ import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 
 import 'package:path/path.dart';
@@ -1247,13 +1246,13 @@ class _PurchasedScreen extends State<PurchasedScreen>  {
                                                 RaisedButton(
                                                color: myColor,
                                                 child: Icon(Icons.image, color: Colors.white,),
-                                                  onPressed: getImageGallery,
+                                                  // onPressed: getImageGallery,
                                                 ),
                                                 RaisedButton(
                                                     color: myColor,
 
                                                   child: Icon(Icons.camera_alt,color: Colors.white,),
-                                                  onPressed: getImageCamera,
+                                                  // onPressed: getImageCamera,
                                                 ),
 //                                              RaisedButton(
 //                                                child: Text("UPLOAD video"),
@@ -1387,7 +1386,7 @@ class _PurchasedScreen extends State<PurchasedScreen>  {
     final uri = 'https://backend.dev-ssep.tk/api/survey';
 //    _onLoading();
     http.Response response = await http.post(
-      uri, headers: { 'Content-type': 'application/json',
+        Uri.parse(uri), headers: { 'Content-type': 'application/json',
       'Accept': 'application/json', HttpHeaders.authorizationHeader: token },body: (json.encode(_AddResult.toMap())),
     );
     Navigator.pop(this.context);
@@ -1531,30 +1530,30 @@ class _PurchasedScreen extends State<PurchasedScreen>  {
     );
   }
 
-  Future getImageGallery() async{
-//    var imageFile = await ImagePicker.pickVideo(source: ImageSource.gallery);
-    File imageFile = await ImagePicker.pickImage(source: ImageSource.gallery,);
-    List<int> imageBytes = imageFile.readAsBytesSync();
-    file = base64.encode(imageBytes);
-    String fi = "jpg,"+ file;
+//   Future getImageGallery() async{
+// //    var imageFile = await ImagePicker.pickVideo(source: ImageSource.gallery);
+//     File imageFile = await ImagePicker.pickImage(source: ImageSource.gallery,);
+//     List<int> imageBytes = imageFile.readAsBytesSync();
+//     file = base64.encode(imageBytes);
+//     String fi = "jpg,"+ file;
+//
+//     setState(() {
+// //      _video = imageFile;
+//       _AddResult.attachment= fi;
+//     });
+//   }
 
-    setState(() {
-//      _video = imageFile;
-      _AddResult.attachment= fi;
-    });
-  }
-
-  Future getImageCamera() async{
-    var videoFile = await ImagePicker.pickImage(source: ImageSource.camera);
-    List<int> videoBytes = videoFile.readAsBytesSync();
-    file = base64.encode(videoBytes);
-    String fi = "jpg,"+file;
-
-    setState(()  {
-//      _video = imageFile;
-      _AddResult.attachment= fi;
-    });
-  }
+//   Future getImageCamera() async{
+//     var videoFile = await ImagePicker.pickImage(source: ImageSource.camera);
+//     List<int> videoBytes = videoFile.readAsBytesSync();
+//     file = base64.encode(videoBytes);
+//     String fi = "jpg,"+file;
+//
+//     setState(()  {
+// //      _video = imageFile;
+//       _AddResult.attachment= fi;
+//     });
+//   }
   showAlertDialog(BuildContext context) {
 
     // set up the buttons

@@ -20,7 +20,7 @@ class LoginRepository {
 
     print(body);
 
-    Response response = await post(url, headers: headers, body: body);
+    Response response = await post(Uri.parse(url), headers: headers, body: body);
 
     print(response.body);
 

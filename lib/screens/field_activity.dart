@@ -10,12 +10,13 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_absolute_path/flutter_absolute_path.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ssepnew/CustomAppBar.dart';
 import 'package:ssepnew/consts.dart';
@@ -27,7 +28,7 @@ import 'package:ssepnew/screens/btl_records.dart';
 import 'package:ssepnew/screens/purchased.dart';
 import 'package:ssepnew/themes.dart';
 import 'package:flutter/services.dart';
-
+import 'package:path_provider/path_provider.dart' as path_provider;
 
 
 
@@ -35,7 +36,7 @@ class FieldActivityScreen extends StatefulWidget {
 
 //  final List<Survey> EconomicDetail;
 
-//  const EconomicScreen({Key key, @required this.EconomicDetail}) : super(key: key);
+  FieldActivityScreen({Key key, }) : super(key: key);
 
 
   @override
@@ -49,14 +50,16 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   String _setDate = '';
   String userName = '';
+  String Do_id = "";
   String officer = '';
   String Lat = '';
   String Long = '';
 
-  String file ='';
-  String file2 = '';
-  final picker = ImagePicker();
-  final picker2 = ImagePicker();
+  // String file ='';
+  // String file2 = '';
+
+  // final picker = ImagePicker();
+  // final picker2 = ImagePicker();
   final _AddFieldActivity = FieldActivityModel();
   String Value_name = '';
   bool viewVisible = true ;
@@ -69,26 +72,31 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
   TextEditingController talukaController = TextEditingController();
   TextEditingController districtController = TextEditingController();
   TextEditingController participantsController = TextEditingController();
-
   TextEditingController maleController = TextEditingController();
   TextEditingController femaleController = TextEditingController();
   TextEditingController  dateController = TextEditingController();
+  TextEditingController  LatController = TextEditingController();
+  TextEditingController  longController = TextEditingController();
+  TextEditingController  locationController = TextEditingController();
 
-  List<AttendanceSheet> files = [] ;
 
+
+  List<AttachmentsList> files = [] ;
+  List<AttendanceSheets> attdncfiles = [] ;
 
   List<Asset> images = <Asset>[];
   List<Asset> attendanceimages = <Asset>[];
 
   String _error = 'No Error Dectected';
-  List<AttendanceSheet> attdncfiles = [] ;
+
 
   String dateTime;
   DateTime selectedDate = DateTime.now();
   DateFormat dateFormat = DateFormat("yyyy-MM-dd");
   bool  imagesPressed = false;
   bool attendancePressed = false;
-
+  String imagescount = '';
+  String attachimagescount = '';
 
 
 
@@ -103,10 +111,11 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
     maleController.dispose();
     femaleController.dispose();
     dateController.dispose();
-
-
-
+    LatController.dispose();
+    longController.dispose();
+    locationController.dispose();
     super.dispose();
+
   }
 
   FetchData() async {
@@ -116,6 +125,7 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
       userName = (prefs.getString('user_name') ?? '');
       officer = (prefs.getString('createdBy') ?? '');
       Value_name =(prefs.getString('task_title') ?? '');
+      Do_id =(prefs.getString('do_id') ?? '');
     });
   }
 
@@ -124,14 +134,15 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
 
   @override
   void initState() {
+    super.initState();
     setState(() {
       dateController.text = dateFormat.format(selectedDate) ;
       FetchData();
-      getLocation();
+      // getLocation();
        imagesPressed = false;
        attendancePressed = false;
     });
-    super.initState();
+
   }
 
 
@@ -150,86 +161,93 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
         onWillPop: () {
       return _moveToSignInScreen(context);
     },
-    child: new Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: Colors.white,
-      appBar: CustomAppBar(   height: 200,
+    child: GestureDetector(
+    onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+    child:
+    SafeArea(
+      child:new Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: Colors.white,
+        appBar: CustomAppBar(   height: 140,
 
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
 
-            children: [
-              Container(
-                  height: 100.0,
-                  padding: const EdgeInsets.only(left: 20.0,top: 20.0,right: 20.0,bottom: 8.0,),
+              children: [
+                Container(
+                    height: 60.0,
+                    padding: const EdgeInsets.only(left: 10.0,top: 10.0,right: 10.0,bottom: 8.0,),
 
 
 
-                  child: Row(
-                      children: [
+                    child: Row(
+                        children: [
+                          Container(
+                            constraints: BoxConstraints(minWidth: 20, maxWidth: 100),
 
-                        Text('Activity Name : ',style: TextStyle( fontSize: 17,color: Colors.white),),
-                        Container(
-                          constraints: BoxConstraints(minWidth: 20, maxWidth: 200),
-                          child:  AutoSizeText(
-                            Value_name ?? 'default value',
-                            style: TextStyle(fontSize: 17,color: Colors.white),
-                            minFontSize: 18,
-                            maxLines: 2,
-
-                            overflow: TextOverflow.ellipsis,
+                            child:  AutoSizeText('Activity Name: ',style: TextStyle( color: Colors.white ),minFontSize: 8,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis),
                           ),
-                        ),
+                          Container(
+                            constraints: BoxConstraints(minWidth: 20, maxWidth: 100),
+                            child:  AutoSizeText(
+                              Value_name ?? '',
+                              style: TextStyle(color: Colors.white ,fontWeight: FontWeight.w500),
+                              minFontSize: 10,
+                              maxLines: 2,
 
-                        Spacer(),
-                        Container(
-                            child: Row(
-                              children: <Widget>[
-                                Text('Logged in user : ',style: TextStyle( fontSize: 17,color: Colors.white),),
-                                Container(
-                                  constraints: BoxConstraints(minWidth: 20, maxWidth: 200),
-                                  child:  AutoSizeText(
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
 
-                                    userName??'default value' ,
-                                    style: TextStyle(fontSize: 17,color: Colors.white),
-                                    minFontSize: 18,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
+                          Spacer(),
+                          Container(
+                              child: Row(
+                                children: <Widget>[
+
+                                  Container(
+                                    constraints: BoxConstraints(minWidth: 20, maxWidth: 100),
+
+                                    child:  AutoSizeText('Logged in: ',style: TextStyle( color: Colors.white ),minFontSize: 8,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis),
+                                  ),
+
+                                  Container(
+                                    constraints: BoxConstraints(minWidth: 20, maxWidth:100),
+                                    child:  AutoSizeText(
+
+                                      userName??'-----' ,
+                                      style: TextStyle(color: Colors.white),
+                                      minFontSize: 8,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
 //                       textAlign: TextAlign.right,
 
-                                  ),
-                                )
+                                    ),
+                                  )
 
-                              ],
-                            )
-                        ),
-
-
-                      ]
-                  )
-              ),
-              Container(
-                  height: 100.0,
-                  padding: const EdgeInsets.only(left: 20.0,top: 20.0,right: 20.0,bottom: 8.0,),
-                  color: Colors.black54,
+                                ],
+                              )
+                          ),
 
 
+                        ]
+                    )
+                ),
+                Container(
+                    height: 80.0,
+                    padding: const EdgeInsets.only(left: 20.0,top: 20.0,right: 20.0,bottom: 8.0,),
+                    color: Colors.black54,
 
-                  child: Row(
-                      children: [
 
-                        Text('Field Activity Form: ',style: TextStyle( fontSize: 30,color: Colors.white),),
-                        Container(
-                          constraints: BoxConstraints(minWidth: 20, maxWidth: 250),
-//                      child:  AutoSizeText(
-//                        Doctor??'',
-//                        style: TextStyle(fontSize: 20,color: Colors.white),
-//                        minFontSize: 18,
-//                        maxLines: 2,
-//
-//                        overflow: TextOverflow.ellipsis,
-//                      ),
-                        ),
+
+                    child: Row(
+                        children: [
+
+                          Text('Field Activity Form',style: TextStyle( fontSize: 23,color: Colors.white),),
+
 
 //                    Spacer(),
 //                    Container(
@@ -254,672 +272,901 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
 //                    ),
 
 
-                      ]
-                  )
-              ),
+                        ]
+                    )
+                ),
 
-            ],
-          )
-      ),
-      ///working on scrolling
-      body: SafeArea(
-          child: Center (
+              ],
+            )
+        ),
+        ///working on scrolling
+        body: GestureDetector(
+            onTap: () {
+              FocusScopeNode currentFocus = FocusScope.of(context);
 
-              child:    Container(
-                height: MediaQuery.of(context).size.height,
-                width: MediaQuery.of(context).size.width ,
+              if (!currentFocus.hasPrimaryFocus) {
+                currentFocus.unfocus();
+              }
+            },
+            child:  new Center (
+
+                child:    Container(
+                  height: MediaQuery.of(context).size.height,
+                  width: MediaQuery.of(context).size.width ,
 //          color: Color.fromRGBO(246,246,246, 1),
-                padding: EdgeInsets.all(20.0),
+                  padding: EdgeInsets.all(20.0),
 //        color:Colors.green,
-                child:Column(
-                  children: [
+                  child:Column(
+                    children: [
 
-                    Expanded(
-                      child: Scrollbar(
-                          child: SingleChildScrollView(
-                            child: Form(
-                              key: _formKey,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
+                      Expanded(
+                        child: Scrollbar(
+                            child: SingleChildScrollView(
+                              child: Form(
+                                key: _formKey,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
 
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        'Date',
-                                        style: TextStyle(fontSize: 16, color: myColor, fontWeight: FontWeight.bold,
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          'Date',
+                                          style: TextStyle(fontSize: 16, color: myColor, fontWeight: FontWeight.bold,
+                                          ),
                                         ),
-                                      ),
-                                      SizedBox(width: 20.0,),
-                                      new Flexible(
-                                          child: Container(
-                                            width: 230.0,
-                                            child:InkWell(
-                                              onTap: () async {
-                                                var date =  await showDatePicker(
-                                                    context: context,
-                                                    initialDate:DateTime.now(),
-                                                    firstDate:DateTime(2021),
-                                                    lastDate: DateTime(2100)
-                                                );
-                                                dateController.text = date.toString().substring(0,10);
-                                              },
-                                              child: Container(
-                                                margin: EdgeInsets.only(top: 10),
+                                        SizedBox(width: 20.0,),
+                                        new Flexible(
+                                            child: Container(
+                                              width: 230.0,
+                                              child:InkWell(
+                                                onTap: () async {
+                                                  var date =  await showDatePicker(
+                                                      context: context,
+                                                      initialDate:DateTime.now(),
+                                                      firstDate:DateTime(2021),
+                                                      lastDate: DateTime(2100)
+                                                  );
+                                                  dateController.text = date.toString().substring(0,10);
+                                                },
+                                                child: Container(
+                                                  margin: EdgeInsets.only(top: 10),
 //                                  width: _width / 1.7,
 //                                  height: _height / 9,
-                                                alignment: Alignment.center,
-                                                decoration: BoxDecoration(color: Colors.grey[200]),
-                                                child: TextFormField(
-                                                  style: TextStyle(fontSize: 25),
-                                                  textAlign: TextAlign.center,
-                                                  onSaved: (String val) {
-                                                    _setDate = val;
-                                                  },
-                                                  enabled: false,
+                                                  alignment: Alignment.center,
+                                                  decoration: BoxDecoration(color: Colors.grey[200]),
+                                                  child: TextFormField(
+                                                    style: TextStyle(fontSize: 25),
+                                                    textAlign: TextAlign.center,
+                                                    onSaved: (String val) {
+                                                      _setDate = val;
+                                                    },
+                                                    enabled: false,
 
-                                                  keyboardType: TextInputType.text,
-                                                  controller: dateController,
-                                                  decoration: InputDecoration(
-                                                      disabledBorder:
-                                                      UnderlineInputBorder(borderSide: BorderSide.none),
-                                                      // labelText: 'Time',
-                                                      contentPadding: EdgeInsets.all(5)),
+                                                    keyboardType: TextInputType.text,
+                                                    controller: dateController,
+                                                    decoration: InputDecoration(
+                                                        disabledBorder:
+                                                        UnderlineInputBorder(borderSide: BorderSide.none),
+                                                        // labelText: 'Time',
+                                                        contentPadding: EdgeInsets.all(5)),
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                          )
+                                            )
 
-                                      ),
-                                      SizedBox(width: 20.0,),
+                                        ),
+                                        SizedBox(width: 20.0,),
 
-                                    ],
-                                  ),
-                                  TextFormField(
+                                      ],
+                                    ),
+                                    TextFormField(
 //                      controller: emailController,
 
-                                    style: TextStyle(color: Colors.grey),
+                                      style: TextStyle(color: Colors.grey),
 
-                                    decoration: new InputDecoration(
+                                      decoration: new InputDecoration(
 
-                                      labelStyle: TextStyle(
-                                          color: Colors.grey
-                                      ),
-                                      errorStyle: TextStyle(
-                                          color: Colors.red
-                                      ),
-                                      enabledBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.black12),
-                                      ),
-                                      focusedBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.grey),
-                                      ),
-                                      border: UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.red),
-                                      ),
+                                        labelStyle: TextStyle(
+                                            color: Colors.grey
+                                        ),
+                                        errorStyle: TextStyle(
+                                            color: Colors.red
+                                        ),
+                                        enabledBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.black12),
+                                        ),
+                                        focusedBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.grey),
+                                        ),
+                                        border: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.red),
+                                        ),
 //                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
-                                      labelText: 'Activity Name',
+                                        labelText: 'Activity Name',
 //                                   hintText: "Name Head of Household",
-                                      hintStyle: TextStyle(color: Colors.grey),
+                                        hintStyle: TextStyle(color: Colors.grey),
 
-                                    ),
-                                    validator: (val) {
-                                      if (val.isEmpty) {
-                                        return 'Field is required';
-                                      }
-                                      if (val.length < 2) {
-                                        return 'Field is too short';
-                                      }
-                                      return null;
-                                    },
-                                    controller: activitynmController,
-                                    onChanged: (value){
-                                      setState(() {
-                                        _AddFieldActivity.activityName = activitynmController.text;
-                                        print(_AddFieldActivity.activityName);
-                                      });
-                                    },
-
-                                  ),
-                                  SizedBox(height: 20.0,),
-                                  TextFormField(
-//                      controller: emailController,
-
-                                    style: TextStyle(color: Colors.grey),
-
-                                    decoration: new InputDecoration(
-
-                                      labelStyle: TextStyle(
-                                          color: Colors.grey
                                       ),
-                                      errorStyle: TextStyle(
-                                          color: Colors.red
-                                      ),
-                                      enabledBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.black12),
-                                      ),
-                                      focusedBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.grey),
-                                      ),
-                                      border: UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.red),
-                                      ),
-//                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
-                                      labelText: 'Village',
-//                                   hintText: "Name Head of Household",
-                                      hintStyle: TextStyle(color: Colors.grey),
-
-                                    ),
-                                    validator: (val) {
-                                      if (val.isEmpty) {
-                                        return 'Field is required';
-                                      }
-                                      if (val.length < 2) {
-                                        return 'Field is too short';
-                                      }
-                                      return null;
-                                    },
-                                    controller: villageController,
-                                    onChanged: (value){
-                                      setState(() {
-                                        _AddFieldActivity.village = villageController.text;
-                                        print(_AddFieldActivity.village);
-                                      });
-                                    },
-
-                                  ),
-                                  SizedBox(height: 20.0,),
-                                  TextFormField(
-//                      controller: emailController,
-
-                                    style: TextStyle(color: Colors.grey),
-
-                                    decoration: new InputDecoration(
-
-                                      labelStyle: TextStyle(
-                                          color: Colors.grey
-                                      ),
-                                      errorStyle: TextStyle(
-                                          color: Colors.red
-                                      ),
-                                      enabledBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.black12),
-                                      ),
-                                      focusedBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.grey),
-                                      ),
-                                      border: UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.red),
-                                      ),
-//                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
-                                      labelText: 'UC',
-//                                   hintText: "Name Head of Household",
-                                      hintStyle: TextStyle(color: Colors.grey),
-
-                                    ),
-                                    validator: (val) {
-                                      if (val.isEmpty) {
-                                        return 'Field is required';
-                                      }
-                                      if (val.length < 2) {
-                                        return 'Field is too short';
-                                      }
-                                      return null;
-                                    },
-                                    controller: ucController,
-                                    onChanged: (value){
-                                      setState(() {
-                                        _AddFieldActivity.uc = ucController.text;
-                                        print(_AddFieldActivity.uc);
-                                      });
-                                    },
-
-                                  ),
-                                  SizedBox(height: 20.0,),
-                                  TextFormField(
-//                      controller: emailController,
-
-                                    style: TextStyle(color: Colors.grey),
-
-                                    decoration: new InputDecoration(
-
-                                      labelStyle: TextStyle(
-                                          color: Colors.grey
-                                      ),
-                                      errorStyle: TextStyle(
-                                          color: Colors.red
-                                      ),
-                                      enabledBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.black12),
-                                      ),
-                                      focusedBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.grey),
-                                      ),
-                                      border: UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.red),
-                                      ),
-//                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
-                                      labelText: 'Taluka',
-//                                   hintText: "Name Head of Household",
-                                      hintStyle: TextStyle(color: Colors.grey),
-
-                                    ),
-                                    validator: (val) {
-                                      if (val.isEmpty) {
-                                        return 'Field is required';
-                                      }
-                                      if (val.length < 2) {
-                                        return 'Field is too short';
-                                      }
-                                      return null;
-                                    },
-                                    controller: talukaController,
-                                    onChanged: (value){
-                                      setState(() {
-                                        _AddFieldActivity.taluka = talukaController.text;
-                                        print(_AddFieldActivity.taluka);
-                                      });
-                                    },
-
-                                  ),
-                                  SizedBox(height: 20.0,),
-                                  TextFormField(
-//                      controller: emailController,
-
-                                    style: TextStyle(color: Colors.grey),
-
-                                    decoration: new InputDecoration(
-
-                                      labelStyle: TextStyle(
-                                          color: Colors.grey
-                                      ),
-                                      errorStyle: TextStyle(
-                                          color: Colors.red
-                                      ),
-                                      enabledBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.black12),
-                                      ),
-                                      focusedBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.grey),
-                                      ),
-                                      border: UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.red),
-                                      ),
-//                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
-                                      labelText: 'District',
-//                                   hintText: "Name Head of Household",
-                                      hintStyle: TextStyle(color: Colors.grey),
-
-                                    ),
-                                    validator: (val) {
-                                      if (val.isEmpty) {
-                                        return 'Field is required';
-                                      }
-                                      if (val.length < 2) {
-                                        return 'Field is too short';
-                                      }
-                                      return null;
-                                    },
-                                    controller: districtController,
-                                    onChanged: (value){
-                                      setState(() {
-                                        _AddFieldActivity.district = districtController.text;
-                                        print(_AddFieldActivity.district);
-                                      });
-                                    },
-
-                                  ),
-                                  SizedBox(height: 20.0,),
-
-                                  Row(
-                                    children:<Widget> [
-                                      Container(
-                                        padding: new EdgeInsets.only(top: 15.0,right: 15.0),
-                                        alignment: Alignment.topLeft,
-                                        child: Text(
-                                          'GPS Coordinate',
-                                          style: new TextStyle(
-//                                     fontWeight: FontWeight.bold,
-                                            color: Colors.grey,
-                                            fontSize: 15.0,
-                                          ),
-                                        ),
-                                      ),
-                                      Container(
-//                                      width: 30.0,
-                                        padding: new EdgeInsets.only(top: 15.0,),
-
-
-                                        child:  Text("Latitude : "),
-                                      ),
-                                      Container(
-//                                      width: 30.0,
-                                        padding: new EdgeInsets.only(top: 15.0,),
-
-                                        child:  Text(_AddFieldActivity.mapLat ?? ''),
-                                      ),
-                                      SizedBox(width: 10.0,),
-                                      Container(
-//                                      width: 30.0,
-                                        padding: new EdgeInsets.only(top: 15.0,),
-
-                                        child:  Text("Longitude : "),
-                                      ),
-                                      Container(
-//                                      width: 30.0,
-                                        padding: new EdgeInsets.only(top: 15.0,),
-
-                                        child:  Text(_AddFieldActivity.mapLong ??''),
-                                      ),
-                                    ],
-                                  ),
-
-                                  SizedBox(height: 20.0,),
-                                  Row(
-                                    children:<Widget> [
-                                      Container(
-                                        padding: new EdgeInsets.only(top: 15.0,right: 15.0),
-                                        alignment: Alignment.topLeft,
-                                        child: Text(
-                                          'District Officer Name:',
-                                          style: new TextStyle(
-//                                     fontWeight: FontWeight.bold,
-                                            color: Colors.grey,
-                                            fontSize: 15.0,
-                                          ),
-                                        ),
-                                      ),
-                                      Container(
-                                        padding: new EdgeInsets.only(top: 15.0,),
-
-                                        child:  Text( officer ?? "", style: new TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey,
-                                          fontSize: 15.0,),
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                  Row(
-                                    children:<Widget> [
-                                      Container(
-//                                      width:60.0 ,
-                                        padding: new EdgeInsets.only(top: 20.0,),
-                                        alignment: Alignment.topLeft,
-                                        child: Text(
-                                          'No. of Participants',
-                                          style: new TextStyle(
-//                                     fontWeight: FontWeight.bold,
-                                            color: Colors.grey,
-                                            fontSize: 15.0,
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(width: 10.0,),
-
-                                      Container(
-                                        width: 130.0,
-
-                                        child:  TextFormField(
-
-//                      controller: emailController,
-                                          style: TextStyle(color: Colors.grey),
-
-                                          decoration: new InputDecoration(
-                                            contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: -5),
-                                            labelStyle: TextStyle(
-                                                color: Colors.grey
-                                            ),
-                                            errorStyle: TextStyle(
-                                                color: Colors.red
-                                            ),
-                                            enabledBorder: UnderlineInputBorder(
-                                              borderSide: BorderSide(color: Colors.black12),
-                                            ),
-                                            focusedBorder: UnderlineInputBorder(
-                                              borderSide: BorderSide(color: Colors.grey),
-                                            ),
-                                            border: UnderlineInputBorder(
-                                              borderSide: BorderSide(color: Colors.red),
-                                            ),
-//                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
-                                            labelText: '',
-                                            hintStyle: TextStyle(color: Colors.grey),
-
-                                          ),
-                                          keyboardType: TextInputType.number,
-                                          inputFormatters: <TextInputFormatter>[
-                                            FilteringTextInputFormatter.digitsOnly,
-                                            LengthLimitingTextInputFormatter(7)
-
-                                          ],
-                                          validator: (val) {
-                                            if (val.isEmpty) {
-                                              return 'Field is required';
-                                            }
-                                            return null;
-                                          },
-                                          controller: participantsController,
-                                          onChanged: (value){
-                                            setState(() {
-                                              _AddFieldActivity.countParticipants = int.parse(participantsController.text);
-                                              print(_AddFieldActivity.countParticipants);
-                                            });
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-
-                                  SizedBox(height: 20.0,),
-
-
-                                  Container(
-
-
-                                    child:  Text(
-                                      'Gender:',
-                                      style: TextStyle(fontSize: 16, color: myColor, fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-
-                                  Row(
-                                    children:<Widget> [
-                                      Container(
-                                        width:60.0 ,
-                                        padding: new EdgeInsets.only(top: 20.0,),
-                                        alignment: Alignment.topLeft,
-                                        child: Text(
-                                          'Male',
-                                          style: new TextStyle(
-//                                     fontWeight: FontWeight.bold,
-                                            color: Colors.grey,
-                                            fontSize: 15.0,
-                                          ),
-                                        ),
-                                      ),
-                                      Container(
-                                        width: 100.0,
-
-                                        child:  TextFormField(
-
-//                      controller: emailController,
-                                          style: TextStyle(color: Colors.grey),
-
-                                          decoration: new InputDecoration(
-                                            contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: -5),
-                                            labelStyle: TextStyle(
-                                                color: Colors.grey
-                                            ),
-                                            errorStyle: TextStyle(
-                                                color: Colors.red
-                                            ),
-                                            enabledBorder: UnderlineInputBorder(
-                                              borderSide: BorderSide(color: Colors.black12),
-                                            ),
-                                            focusedBorder: UnderlineInputBorder(
-                                              borderSide: BorderSide(color: Colors.grey),
-                                            ),
-                                            border: UnderlineInputBorder(
-                                              borderSide: BorderSide(color: Colors.red),
-                                            ),
-//                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
-                                            labelText: '',
-                                            hintStyle: TextStyle(color: Colors.grey),
-
-                                          ),
-                                          keyboardType: TextInputType.number,
-                                          inputFormatters: <TextInputFormatter>[
-                                            FilteringTextInputFormatter.digitsOnly,
-                                            LengthLimitingTextInputFormatter(5)
-
-                                          ],
-//                                          validator: (val) {
-//                                            if (val.isEmpty) {
-//                                              return 'Field is required';
-//                                            }
-//                                            return null;
-//                                          },
-                                          controller: maleController,
-                                          onChanged: (value){
-                                            setState(() {
-                                              _AddFieldActivity.male = int.parse(maleController.text);
-                                              print(_AddFieldActivity.male);
-                                            });
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children:<Widget> [
-                                      Container(
-                                        width:60.0 ,
-                                        padding: new EdgeInsets.only(top: 20.0,),
-                                        alignment: Alignment.topLeft,
-                                        child: Text(
-                                          'Female',
-                                          style: new TextStyle(
-//                                     fontWeight: FontWeight.bold,
-                                            color: Colors.grey,
-                                            fontSize: 15.0,
-                                          ),
-                                        ),
-                                      ),
-                                      Container(
-                                        width: 100.0,
-
-                                        child:  TextFormField(
-
-//                      controller: emailController,
-                                          style: TextStyle(color: Colors.grey),
-
-                                          decoration: new InputDecoration(
-                                            contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: -5),
-                                            labelStyle: TextStyle(
-                                                color: Colors.grey
-                                            ),
-                                            errorStyle: TextStyle(
-                                                color: Colors.red
-                                            ),
-                                            enabledBorder: UnderlineInputBorder(
-                                              borderSide: BorderSide(color: Colors.black12),
-                                            ),
-                                            focusedBorder: UnderlineInputBorder(
-                                              borderSide: BorderSide(color: Colors.grey),
-                                            ),
-                                            border: UnderlineInputBorder(
-                                              borderSide: BorderSide(color: Colors.red),
-                                            ),
-//                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
-                                            labelText: '',
-                                            hintStyle: TextStyle(color: Colors.grey),
-
-                                          ),
-                                          keyboardType: TextInputType.number,
-                                          inputFormatters: <TextInputFormatter>[
-                                            FilteringTextInputFormatter.digitsOnly,
-                                            LengthLimitingTextInputFormatter(5)
-
-                                          ],
-//                                          validator: (val) {
-//                                            if (val.isEmpty) {
-//                                              return 'Field is required';
-//                                            }
-//                                            return null;
-//                                          },
-                                          controller: femaleController,
-                                          onChanged: (value){
-                                            setState(() {
-                                              _AddFieldActivity.female = int.parse(femaleController.text);
-                                              print(_AddFieldActivity.female);
-                                            });
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 20.0,),
-                                  Container(
-                                    child:  Text(
-                                      'Concise Activity Details',
-                                      style: TextStyle(fontSize: 25, color: myColor,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(height: 10.0,),
-                                  Container(
-                                    margin: EdgeInsets.only(bottom:8.0),
-                                    // hack textfield height
-                                    child: TextFormField(
-                                      maxLines: 15,
-                                      decoration: InputDecoration(
-                                        hintText: "Details",
-                                        border: OutlineInputBorder(),
-                                      ),
-                                      onSaved: (val) {
-                                        _AddFieldActivity.details = val;
-                                        print( _AddFieldActivity.details  );
+                                      validator: (val) {
+                                        if (val.isEmpty) {
+                                          return 'Field is required';
+                                        }
+                                        if (val.length < 2) {
+                                          return 'Field is too short';
+                                        }
+                                        return null;
                                       },
+                                      controller: activitynmController,
+                                      onChanged: (value){
+                                        setState(() {
+                                          _AddFieldActivity.activityName = activitynmController.text;
+                                          print(_AddFieldActivity.activityName);
+                                        });
+                                      },
+
                                     ),
-                                  ),
-                                  Container(
-                                    padding: new EdgeInsets.only(top: 20.0,),
-                                    alignment: Alignment.topLeft,
-                                    child:  Text(
-                                      'Location',
-                                      style: TextStyle(fontSize: 16, color: myColor,
+                                    SizedBox(height: 20.0,),
+                                    TextFormField(
+//                      controller: emailController,
+
+                                      style: TextStyle(color: Colors.grey),
+
+                                      decoration: new InputDecoration(
+
+                                        labelStyle: TextStyle(
+                                            color: Colors.grey
+                                        ),
+                                        errorStyle: TextStyle(
+                                            color: Colors.red
+                                        ),
+                                        enabledBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.black12),
+                                        ),
+                                        focusedBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.grey),
+                                        ),
+                                        border: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.red),
+                                        ),
+//                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
+                                        labelText: 'Village',
+//                                   hintText: "Name Head of Household",
+                                        hintStyle: TextStyle(color: Colors.grey),
+
+                                      ),
+                                      validator: (val) {
+                                        if (val.isEmpty) {
+                                          return 'Field is required';
+                                        }
+                                        if (val.length < 2) {
+                                          return 'Field is too short';
+                                        }
+                                        return null;
+                                      },
+                                      controller: villageController,
+                                      onChanged: (value){
+                                        setState(() {
+                                          _AddFieldActivity.village = villageController.text;
+                                          print(_AddFieldActivity.village);
+                                        });
+                                      },
+
+                                    ),
+                                    SizedBox(height: 20.0,),
+                                    TextFormField(
+//                      controller: emailController,
+
+                                      style: TextStyle(color: Colors.grey),
+
+                                      decoration: new InputDecoration(
+
+                                        labelStyle: TextStyle(
+                                            color: Colors.grey
+                                        ),
+                                        errorStyle: TextStyle(
+                                            color: Colors.red
+                                        ),
+                                        enabledBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.black12),
+                                        ),
+                                        focusedBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.grey),
+                                        ),
+                                        border: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.red),
+                                        ),
+//                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
+                                        labelText: 'UC',
+//                                   hintText: "Name Head of Household",
+                                        hintStyle: TextStyle(color: Colors.grey),
+
+                                      ),
+                                      validator: (val) {
+                                        if (val.isEmpty) {
+                                          return 'Field is required';
+                                        }
+                                        if (val.length < 2) {
+                                          return 'Field is too short';
+                                        }
+                                        return null;
+                                      },
+                                      controller: ucController,
+                                      onChanged: (value){
+                                        setState(() {
+                                          _AddFieldActivity.uc = ucController.text;
+                                          print(_AddFieldActivity.uc);
+                                        });
+                                      },
+
+                                    ),
+                                    SizedBox(height: 20.0,),
+                                    TextFormField(
+//                      controller: emailController,
+
+                                      style: TextStyle(color: Colors.grey),
+
+                                      decoration: new InputDecoration(
+
+                                        labelStyle: TextStyle(
+                                            color: Colors.grey
+                                        ),
+                                        errorStyle: TextStyle(
+                                            color: Colors.red
+                                        ),
+                                        enabledBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.black12),
+                                        ),
+                                        focusedBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.grey),
+                                        ),
+                                        border: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.red),
+                                        ),
+//                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
+                                        labelText: 'Taluka',
+//                                   hintText: "Name Head of Household",
+                                        hintStyle: TextStyle(color: Colors.grey),
+
+                                      ),
+                                      validator: (val) {
+                                        if (val.isEmpty) {
+                                          return 'Field is required';
+                                        }
+                                        if (val.length < 2) {
+                                          return 'Field is too short';
+                                        }
+                                        return null;
+                                      },
+                                      controller: talukaController,
+                                      onChanged: (value){
+                                        setState(() {
+                                          _AddFieldActivity.taluka = talukaController.text;
+                                          print(_AddFieldActivity.taluka);
+                                        });
+                                      },
+
+                                    ),
+                                    SizedBox(height: 20.0,),
+                                    TextFormField(
+//                      controller: emailController,
+
+                                      style: TextStyle(color: Colors.grey),
+
+                                      decoration: new InputDecoration(
+
+                                        labelStyle: TextStyle(
+                                            color: Colors.grey
+                                        ),
+                                        errorStyle: TextStyle(
+                                            color: Colors.red
+                                        ),
+                                        enabledBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.black12),
+                                        ),
+                                        focusedBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.grey),
+                                        ),
+                                        border: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.red),
+                                        ),
+//                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
+                                        labelText: 'District',
+//                                   hintText: "Name Head of Household",
+                                        hintStyle: TextStyle(color: Colors.grey),
+
+                                      ),
+                                      validator: (val) {
+                                        if (val.isEmpty) {
+                                          return 'Field is required';
+                                        }
+                                        if (val.length < 2) {
+                                          return 'Field is too short';
+                                        }
+                                        return null;
+                                      },
+                                      controller: districtController,
+                                      onChanged: (value){
+                                        setState(() {
+                                          _AddFieldActivity.district = districtController.text;
+                                          print(_AddFieldActivity.district);
+                                        });
+                                      },
+
+                                    ),
+                                    SizedBox(height: 10.0,),
+                                    Container(
+                                      padding: new EdgeInsets.only(top: 10.0,),
+                                      alignment: Alignment.topLeft,
+                                      child:  Text(
+                                        'GPS Coordinates',
+                                        style: TextStyle(fontSize: 16, color: myColor,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  SizedBox(height: 15.0,),
-                                  Container(
-                                      child:Text(_AddFieldActivity.mapLocation ?? "no location" ,style: TextStyle(fontWeight: FontWeight.w400,color: Colors.black),)
+                                    TextFormField(
+//                      controller: emailController,
 
-                                  ),
+                                      style: TextStyle(color: Colors.grey),
 
-                                  SizedBox(height: 10.0,),
+                                      decoration: new InputDecoration(
 
-                                  Container(
-                                    child: files.isEmpty
-                                        ? new Text("Add activity images",style: TextStyle(fontSize: 20.0,color: myColor,),)
-                                        : new Text("Activity images added",style: TextStyle(fontSize: 20.0,color: Colors.green,)),
-                                  ),
-                                  SizedBox(height: 10.0,),
-                                  Container(
+                                        labelStyle: TextStyle(
+                                            color: Colors.grey
+                                        ),
+                                        errorStyle: TextStyle(
+                                            color: Colors.red
+                                        ),
+                                        enabledBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.black12),
+                                        ),
+                                        focusedBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.grey),
+                                        ),
+                                        border: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.red),
+                                        ),
+//                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
+                                        labelText: 'Latitude',
+//                                   hintText: "Name Head of Household",
+                                        hintStyle: TextStyle(color: Colors.grey),
 
-                                      child:  Row(
+                                      ),
+                                      keyboardType: TextInputType.number,
+                                      validator: (val) {
+                                        if (val.isEmpty) {
+                                          return 'Field is required';
+                                        }
+                                        if (val.length < 2) {
+                                          return 'Field is too short';
+                                        }
+                                        return null;
+                                      },
+                                      controller: LatController,
+                                      onChanged: (value){
+                                        setState(() {
+                                          _AddFieldActivity.mapLat = LatController.text;
+                                          print(_AddFieldActivity.mapLat);
+                                        });
+                                      },
 
-                                        children: <Widget>[
-                                          RaisedButton(
-                                            color: (imagesPressed) ? Colors.red
-                                                : myColor,
-                                            child: Icon(Icons.image, color: Colors.white,),
-                                            onPressed: loadAssets,
+                                    ),
+                                    TextFormField(
+//                      controller: emailController,
+
+                                      style: TextStyle(color: Colors.grey),
+
+                                      decoration: new InputDecoration(
+
+                                        labelStyle: TextStyle(
+                                            color: Colors.grey
+                                        ),
+                                        errorStyle: TextStyle(
+                                            color: Colors.red
+                                        ),
+                                        enabledBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.black12),
+                                        ),
+                                        focusedBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.grey),
+                                        ),
+                                        border: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.red),
+                                        ),
+//                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
+                                        labelText: 'Longitude',
+//                                   hintText: "Name Head of Household",
+                                        hintStyle: TextStyle(color: Colors.grey),
+
+                                      ),
+                                      keyboardType: TextInputType.number,
+                                      validator: (val) {
+                                        if (val.isEmpty) {
+                                          return 'Field is required';
+                                        }
+                                        if (val.length < 2) {
+                                          return 'Field is too short';
+                                        }
+                                        return null;
+                                      },
+                                      controller: longController,
+                                      onChanged: (value){
+                                        setState(() {
+                                          _AddFieldActivity.mapLong = longController.text;
+                                          print(_AddFieldActivity.mapLong);
+                                        });
+                                      },
+
+                                    ),
+                                    SizedBox(height: 10.0,),
+                                    Container(
+                                      padding: new EdgeInsets.only(top: 10.0,),
+                                      alignment: Alignment.topLeft,
+                                      child:  Text(
+                                        'Location',
+                                        style: TextStyle(fontSize: 16, color: myColor,
+                                        ),
+                                      ),
+                                    ),
+                                    TextFormField(
+//                      controller: emailController,
+
+                                      style: TextStyle(color: Colors.grey),
+
+                                      decoration: new InputDecoration(
+
+                                        labelStyle: TextStyle(
+                                            color: Colors.grey
+                                        ),
+                                        errorStyle: TextStyle(
+                                            color: Colors.red
+                                        ),
+                                        enabledBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.black12),
+                                        ),
+                                        focusedBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.grey),
+                                        ),
+                                        border: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.red),
+                                        ),
+//                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
+                                        labelText: 'Activity location',
+//                                   hintText: "Name Head of Household",
+                                        hintStyle: TextStyle(color: Colors.grey),
+
+                                      ),
+                                      // validator: (val) {
+                                      //   if (val.isEmpty) {
+                                      //     return 'Field is required';
+                                      //   }
+                                      //   if (val.length < 2) {
+                                      //     return 'Field is too short';
+                                      //   }
+                                      //   return null;
+                                      // },
+                                      controller: locationController,
+                                      onChanged: (value){
+                                        setState(() {
+                                          _AddFieldActivity.mapLocation = locationController.text;
+                                          print(locationController);
+                                        });
+                                      },
+
+                                    ),
+                                    // SizedBox(height: 15.0,),
+//                                     Row(
+//                                       children:<Widget> [
+//                                         Container(
+//                                           padding: new EdgeInsets.only(top: 15.0,right: 15.0),
+//                                           alignment: Alignment.topLeft,
+//                                           child: Text(
+//                                             'GPS Coordinate',
+//                                             style: new TextStyle(
+// //                                     fontWeight: FontWeight.bold,
+//                                               color: Colors.grey,
+//                                               fontSize: 15.0,
+//                                             ),
+//                                           ),
+//                                         ),
+//                                         Container(
+// //                                      width: 30.0,
+//                                           padding: new EdgeInsets.only(top: 15.0,),
+//
+//
+//                                           child:  Text("Lat: "),
+//                                         ),
+//                                         Container(
+// //                                      width: 30.0,
+//                                           padding: new EdgeInsets.only(top: 15.0,),
+//
+//                                           child:  TextFormField(
+// //                      controller: emailController,
+//
+//                                             style: TextStyle(color: Colors.grey),
+//
+//                                             decoration: new InputDecoration(
+//
+//                                               labelStyle: TextStyle(
+//                                                   color: Colors.grey
+//                                               ),
+//                                               errorStyle: TextStyle(
+//                                                   color: Colors.red
+//                                               ),
+//                                               enabledBorder: UnderlineInputBorder(
+//                                                 borderSide: BorderSide(color: Colors.black12),
+//                                               ),
+//                                               focusedBorder: UnderlineInputBorder(
+//                                                 borderSide: BorderSide(color: Colors.grey),
+//                                               ),
+//                                               border: UnderlineInputBorder(
+//                                                 borderSide: BorderSide(color: Colors.red),
+//                                               ),
+// //                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
+//                                               labelText: 'District',
+// //                                   hintText: "Name Head of Household",
+//                                               hintStyle: TextStyle(color: Colors.grey),
+//
+//                                             ),
+//                                             validator: (val) {
+//                                               if (val.isEmpty) {
+//                                                 return 'Field is required';
+//                                               }
+//                                               if (val.length < 2) {
+//                                                 return 'Field is too short';
+//                                               }
+//                                               return null;
+//                                             },
+//                                             controller: districtController,
+//                                             onChanged: (value){
+//                                               setState(() {
+//                                                 _AddFieldActivity.district = districtController.text;
+//                                                 print(_AddFieldActivity.district);
+//                                               });
+//                                             },
+//
+//                                           ),
+//                                         ),
+//                                         SizedBox(width: 10.0,),
+//                                         Container(
+// //                                      width: 30.0,
+//                                           padding: new EdgeInsets.only(top: 15.0,),
+//
+//                                           child:  Text("Long: "),
+//                                         ),
+//                                         Container(
+// //                                      width: 30.0,
+//                                           padding: new EdgeInsets.only(top: 15.0,),
+//
+//                                           child:  Text(_AddFieldActivity.mapLong ??''),
+//                                         ),
+//                                       ],
+//                                     ),
+
+                                    SizedBox(height: 10.0,),
+                                    Row(
+                                      children:<Widget> [
+                                        Container(
+                                          padding: new EdgeInsets.only(top: 10.0,right: 15.0),
+                                          alignment: Alignment.topLeft,
+                                          child: Text(
+                                            'District Officer Name:',
+                                            style: new TextStyle(
+//                                     fontWeight: FontWeight.bold,
+                                              color: Colors.grey,
+                                              fontSize: 15.0,
+                                            ),
                                           ),
+                                        ),
+                                        Container(
+                                          padding: new EdgeInsets.only(top: 10.0,),
+
+                                          child:  Text( officer ?? "", style: new TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: themeblue,
+                                            fontSize: 16.0,),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                    Row(
+                                      children:<Widget> [
+                                        Container(
+//                                      width:60.0 ,
+                                          padding: new EdgeInsets.only(top: 20.0,),
+                                          alignment: Alignment.topLeft,
+                                          child: Text(
+                                            'No. of Participants',
+                                            style: new TextStyle(
+//                                     fontWeight: FontWeight.bold,
+                                              color: Colors.grey,
+                                              fontSize: 15.0,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(width: 10.0,),
+
+                                        Container(
+                                          width: 130.0,
+
+                                          child:  TextFormField(
+
+//                      controller: emailController,
+                                            style: TextStyle(color: Colors.grey),
+
+                                            decoration: new InputDecoration(
+                                              contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: -5),
+                                              labelStyle: TextStyle(
+                                                  color: Colors.grey
+                                              ),
+                                              errorStyle: TextStyle(
+                                                  color: Colors.red
+                                              ),
+                                              enabledBorder: UnderlineInputBorder(
+                                                borderSide: BorderSide(color: Colors.black12),
+                                              ),
+                                              focusedBorder: UnderlineInputBorder(
+                                                borderSide: BorderSide(color: Colors.grey),
+                                              ),
+                                              border: UnderlineInputBorder(
+                                                borderSide: BorderSide(color: Colors.red),
+                                              ),
+//                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
+                                              labelText: '',
+                                              hintStyle: TextStyle(color: Colors.grey),
+
+                                            ),
+                                            keyboardType: TextInputType.number,
+                                            inputFormatters: <TextInputFormatter>[
+                                              FilteringTextInputFormatter.digitsOnly,
+                                              LengthLimitingTextInputFormatter(7)
+
+                                            ],
+                                            validator: (val) {
+                                              if (val.isEmpty) {
+                                                return 'Field is required';
+                                              }
+                                              return null;
+                                            },
+                                            controller: participantsController,
+                                            onChanged: (value){
+                                              setState(() {
+                                                _AddFieldActivity.countParticipants = int.parse(participantsController.text);
+                                                print(_AddFieldActivity.countParticipants);
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+
+                                    SizedBox(height: 15.0,),
+
+
+                                    Container(
+
+
+                                      child:  Text(
+                                        'Gender',
+                                        style: TextStyle(fontSize: 16, color: myColor,
+                                        ),
+                                      ),
+                                    ),
+
+                                    Row(
+                                      children:<Widget> [
+                                        Container(
+                                          width:60.0 ,
+                                          padding: new EdgeInsets.only(top: 20.0,),
+                                          alignment: Alignment.topLeft,
+                                          child: Text(
+                                            'Male',
+                                            style: new TextStyle(
+//                                     fontWeight: FontWeight.bold,
+                                              color: Colors.grey,
+                                              fontSize: 15.0,
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          width: 100.0,
+
+                                          child:  TextFormField(
+
+//                      controller: emailController,
+                                            style: TextStyle(color: Colors.grey),
+
+                                            decoration: new InputDecoration(
+                                              contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: -5),
+                                              labelStyle: TextStyle(
+                                                  color: Colors.grey
+                                              ),
+                                              errorStyle: TextStyle(
+                                                  color: Colors.red
+                                              ),
+                                              enabledBorder: UnderlineInputBorder(
+                                                borderSide: BorderSide(color: Colors.black12),
+                                              ),
+                                              focusedBorder: UnderlineInputBorder(
+                                                borderSide: BorderSide(color: Colors.grey),
+                                              ),
+                                              border: UnderlineInputBorder(
+                                                borderSide: BorderSide(color: Colors.red),
+                                              ),
+//                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
+                                              labelText: '',
+                                              hintStyle: TextStyle(color: Colors.grey),
+
+                                            ),
+                                            keyboardType: TextInputType.number,
+                                            inputFormatters: <TextInputFormatter>[
+                                              FilteringTextInputFormatter.digitsOnly,
+                                              LengthLimitingTextInputFormatter(5)
+
+                                            ],
+//                                          validator: (val) {
+//                                            if (val.isEmpty) {
+//                                              return 'Field is required';
+//                                            }
+//                                            return null;
+//                                          },
+                                            controller: maleController,
+                                            onChanged: (value){
+                                              setState(() {
+                                                _AddFieldActivity.male = int.parse(maleController.text);
+                                                print(_AddFieldActivity.male);
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children:<Widget> [
+                                        Container(
+                                          width:60.0 ,
+                                          padding: new EdgeInsets.only(top: 20.0,),
+                                          alignment: Alignment.topLeft,
+                                          child: Text(
+                                            'Female',
+                                            style: new TextStyle(
+//                                     fontWeight: FontWeight.bold,
+                                              color: Colors.grey,
+                                              fontSize: 15.0,
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          width: 100.0,
+
+                                          child:  TextFormField(
+
+//                      controller: emailController,
+                                            style: TextStyle(color: Colors.grey),
+
+                                            decoration: new InputDecoration(
+                                              contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: -5),
+                                              labelStyle: TextStyle(
+                                                  color: Colors.grey
+                                              ),
+                                              errorStyle: TextStyle(
+                                                  color: Colors.red
+                                              ),
+                                              enabledBorder: UnderlineInputBorder(
+                                                borderSide: BorderSide(color: Colors.black12),
+                                              ),
+                                              focusedBorder: UnderlineInputBorder(
+                                                borderSide: BorderSide(color: Colors.grey),
+                                              ),
+                                              border: UnderlineInputBorder(
+                                                borderSide: BorderSide(color: Colors.red),
+                                              ),
+//                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
+                                              labelText: '',
+                                              hintStyle: TextStyle(color: Colors.grey),
+
+                                            ),
+                                            keyboardType: TextInputType.number,
+                                            inputFormatters: <TextInputFormatter>[
+                                              FilteringTextInputFormatter.digitsOnly,
+                                              LengthLimitingTextInputFormatter(5)
+
+                                            ],
+//                                          validator: (val) {
+//                                            if (val.isEmpty) {
+//                                              return 'Field is required';
+//                                            }
+//                                            return null;
+//                                          },
+                                            controller: femaleController,
+                                            onChanged: (value){
+                                              setState(() {
+                                                _AddFieldActivity.female = int.parse(femaleController.text);
+                                                print(_AddFieldActivity.female);
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(height: 20.0,),
+                                    Container(
+                                      child:  Text(
+                                        'Concise Activity Details',
+                                        style: TextStyle(fontSize: 25, color: myColor,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(height: 10.0,),
+                                    Container(
+                                      margin: EdgeInsets.only(bottom:8.0),
+                                      // hack textfield height
+                                      child: TextFormField(
+                                        maxLines: 15,
+                                        decoration: InputDecoration(
+                                          hintText: "Details",
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        onSaved: (val) {
+                                          _AddFieldActivity.details = val;
+                                          print( _AddFieldActivity.details  );
+                                        },
+                                      ),
+                                    ),
+                                    // Container(
+                                    //   padding: new EdgeInsets.only(top: 20.0,),
+                                    //   alignment: Alignment.topLeft,
+                                    //   child:  Text(
+                                    //     'Location',
+                                    //     style: TextStyle(fontSize: 16, color: myColor,
+                                    //     ),
+                                    //   ),
+                                    // ),
+                                    // SizedBox(height: 15.0,),
+                                    // Container(
+                                    //     child:Text(_AddFieldActivity.mapLocation ?? "no location" ,style: TextStyle(fontWeight: FontWeight.w400,color: Colors.black),)
+                                    //
+                                    // ),
+
+                                    SizedBox(height: 10.0,),
+                                    Row(
+                                      children: [
+                                        // Container(
+                                        //   child: files.isEmpty
+                                        //       ? new Text("Add activity images",style: TextStyle(fontSize: 20.0,color: myColor,),)
+                                        //       : new Text("Activity images added",style: TextStyle(fontSize: 20.0,color: Colors.green,)),
+                                        // ),
+                                        // SizedBox(width: 10.0,),
+                                        Container(
+                                          child: imagescount.isEmpty
+                                              ? new Text("Add activity images",style: TextStyle(fontSize: 20.0,color: myColor,),)
+                                              : new Text(imagescount + " Activity image(s) added", style: TextStyle(fontSize: 20.0,color: Colors.green,)),
+                                        ),
+
+                                      ],
+                                    ),
+                                    SizedBox(height: 10.0,),
+                                    Container(
+
+                                        child:  Row(
+
+                                          children: <Widget>[
+                                        ElevatedButton(
+                                          style: ButtonStyle(
+                                              backgroundColor: (imagesPressed) ? MaterialStateProperty.all(Colors.red)
+                                                  : MaterialStateProperty.all(myColor),
+                                              padding: MaterialStateProperty.all(EdgeInsets.only(left: 30.0,right: 30.0,top: 7.0,bottom: 7.0)),
+                                              textStyle: MaterialStateProperty.all(TextStyle(fontSize: 30))),
+
+                                              child: Icon(Icons.image, color: Colors.white,),
+                                              onPressed:(){
+                                            FocusScope.of(context).requestFocus(FocusNode());
+                                            loadAssets();
+
+                                        }
+                                            ),
 //                                        RaisedButton(
 //                                          color: myColor,
 //
@@ -933,27 +1180,35 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
 //                                                },
 //                                              ),
 
-                                        ],
-                                      )
-                                  ),
-                                  SizedBox(height: 15.0,),
-                                  Container(
-                                    child: attdncfiles.isEmpty
-                                        ? new Text("Add attendance sheet ",style: TextStyle(fontSize: 20.0,color: myColor,),)
-                                        : new Text("attendance sheet added",style: TextStyle(fontSize: 20.0,color: Colors.green,)),
-                                  ),
-                                  SizedBox(height: 10.0,),
-                                  Container(
+                                          ],
+                                        )
+                                    ),
+                                    SizedBox(height: 15.0,),
+                                    Container(
+                                      child: attachimagescount.isEmpty
+                                          ? new Text("Add attendance sheet ",style: TextStyle(fontSize: 20.0,color: myColor,),)
+                                          : new Text(attachimagescount + " Attendance sheet(s) added",style: TextStyle(fontSize: 20.0,color: Colors.green,)),
+                                    ),
+                                    SizedBox(height: 10.0,),
+                                    Container(
 
-                                      child:  Row(
+                                        child:  Row(
 
-                                        children: <Widget>[
-                                          RaisedButton(
-                                            color: (attendancePressed) ? Colors.red
-                                                : myColor,
-                                            child: Icon(Icons.image, color: Colors.white,),
-                                            onPressed: loadAttendance,
-                                          ),
+                                          children: <Widget>[
+
+                                            ElevatedButton(
+                                              style: ButtonStyle(
+                                                  backgroundColor: (attendancePressed) ? MaterialStateProperty.all(Colors.red)
+                                                      : MaterialStateProperty.all(Colors.blue),
+                                                  padding: MaterialStateProperty.all(EdgeInsets.only(left: 30.0,right: 30.0,top: 7.0,bottom: 7.0)),
+                                                  textStyle: MaterialStateProperty.all(TextStyle(fontSize: 30))),
+
+                                              child: Icon(Icons.image, color: Colors.white,),
+                                              onPressed:() {
+                                                FocusScope.of(context).requestFocus(FocusNode());
+                                                loadAttendance();
+                                              },
+                                            ),
 //                                        RaisedButton(
 //                                          color: myColor,
 //
@@ -967,61 +1222,61 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
 //                                                },
 //                                              ),
 
-                                        ],
-                                      )
-                                  ),
-                                  SizedBox(height: 15.0,),
-                                ],
+                                          ],
+                                        )
+                                    ),
+                                    SizedBox(height: 15.0,),
+                                  ],
+                                ),
                               ),
-                            ),
-                          )
+                            )
+                        ),
                       ),
-                    ),
 //                      Padding(
 //                          padding: const EdgeInsets.symmetric(vertical: 10.0),
 //                          child:
-                    Align(
-                      child: SizedBox(
+                      Align(
+                        child: SizedBox(
 //                              width: 600,
-                        child: ElevatedButton(
+                          child: ElevatedButton(
 
-                            style: ElevatedButton.styleFrom(
-                              primary: darkblue,
-                              shadowColor: Colors.deepOrangeAccent,
+                              style: ElevatedButton.styleFrom(
+                                primary: darkblue,
+                                shadowColor: Colors.deepOrangeAccent,
 
 
-                            ),
-                            onPressed: () {
+                              ),
+                              onPressed: () {
 //                                   Validate returns true if the form is valid, or false
 //                                   otherwise.
-                          if (_formKey.currentState.validate() && images.isNotEmpty && attendanceimages.isNotEmpty) {
+                                if (_formKey.currentState.validate() && images.isNotEmpty && attendanceimages.isNotEmpty) {
 
-                            showLoaderDialog(context);
-                                _submitForm();
-    }
-        else if (images.isEmpty && attendanceimages.isNotEmpty ){
+                                  showLoaderDialog(context);
+                                  _submitForm();
+                                }
+                                else if (images.isEmpty && attendanceimages.isNotEmpty ){
 
-      setState(()
-      {
-        imagesPressed = true;
-      });
-    }
-    else if (attendanceimages.isEmpty && images.isNotEmpty  ){
+                                  setState(()
+                                  {
+                                    imagesPressed = true;
+                                  });
+                                }
+                                else if (attendanceimages.isEmpty && images.isNotEmpty  ){
 
-    setState(()
-    {
-    attendancePressed  = true;
-    });
-    }
-    else if ( images.isEmpty && attendanceimages.isEmpty  ){
+                                  setState(()
+                                  {
+                                    attendancePressed  = true;
+                                  });
+                                }
+                                else if ( images.isEmpty && attendanceimages.isEmpty  ){
 
-    setState(()
-    {
-    imagesPressed = true;
-    attendancePressed  = true;
-    });
-    }
-    },
+                                  setState(()
+                                  {
+                                    imagesPressed = true;
+                                    attendancePressed  = true;
+                                  });
+                                }
+                              },
 //                            {
 ////                                   Validate returns true if the form is valid, or false
 ////                                   otherwise.
@@ -1031,30 +1286,32 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
 //
 //                              }
 //                            },
-                            child: Container(
+                              child: Container(
 //                                    height: MediaQuery.of(context).size.height,
-                              width: MediaQuery.of(context).size.width ,
+                                width: MediaQuery.of(context).size.width ,
 //                                    width: 600.0,
 
-                              child:Text('Submit',textAlign: TextAlign.center,style: TextStyle(fontSize: 20.0)
-                              ),
-                            )
+                                child:Text('Submit',textAlign: TextAlign.center,style: TextStyle(fontSize: 20.0)
+                                ),
+                              )
+                          ),
                         ),
                       ),
-                    ),
 
 //                      ),
-                  ],
-                ),
+                    ],
+                  ),
 
 
 
-              )
+                )
 
-          )
+            )
 
-      ),
+        ),
 //      drawer: CustomerDrawer(),
+      )
+    )
     )
     );
   }
@@ -1067,10 +1324,7 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
 //      _formResult.supporterType = a;
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _AddFieldActivity.doName = prefs.getString('createdBy');
-
-
-
-
+    _AddFieldActivity.doID = prefs.getString('do_id').toString();
     _AddFieldActivity.date = dateController.text;
 //    _AddResult.name = widget.EconomicDetail.name.toString();
     form.save();
@@ -1080,10 +1334,10 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
     String tokenn = ( prefs.getString('token'));
     String token = 'Bearer '+ tokenn;
 
-    final uri = 'https://backend.dev-ssep.tk/api/fieldactivity';
+    final uri = baseURL + 'fieldactivity';
 //    _onLoading();
     http.Response response = await http.post(
-      uri, headers: { 'Content-type': 'application/json',
+      Uri.parse(uri), headers: { 'Content-type': 'application/json',
       'Accept': 'application/json', HttpHeaders.authorizationHeader: token },body: (json.encode(_AddFieldActivity.toMap())),
     );
     Navigator.pop(this.context);
@@ -1147,7 +1401,7 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
                     ),
                     SizedBox(
                       width: 200.0,
-                      child: RaisedButton(
+                      child: ElevatedButton(
                           onPressed: () {
                             Navigator.pushAndRemoveUntil(
                                 context,
@@ -1160,7 +1414,10 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
                             "Back to Form",
                             style: TextStyle(color: Colors.white),
                           ),
-                          color: myColor
+                          style: ElevatedButton.styleFrom(
+                              primary: myColor // set the background color
+                          ),
+
                       ),
                     )
                   ],
@@ -1227,6 +1484,7 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
       },
     );
   }
+
   getLocation() async {
     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
 //    String posi  = position.toString();
@@ -1293,20 +1551,26 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
 //
 //    });
 //  }
+  String _timestamp1() => DateTime.now().millisecondsSinceEpoch.toString();
+  String _timestamp2() => DateTime.now().millisecondsSinceEpoch.toString();
+
 
   Future<void> loadAssets() async {
+    // await Permission.camera.request();
+    // _AddFieldActivity.images =[];
+    files = [];
+    imagescount = '';
     List<Asset> resultList = <Asset>[];
     String error = 'No Error Detected';
-
     try {
       resultList = await MultiImagePicker.pickImages(
-        maxImages: 300,
-        enableCamera: true,
+        maxImages: 6,
+        enableCamera: false,
         selectedAssets: images,
         cupertinoOptions: CupertinoOptions(takePhotoIcon: "chat"),
         materialOptions: MaterialOptions(
           actionBarColor: "#abcdef",
-          actionBarTitle: "Example App",
+          actionBarTitle: "SSEP",
           allViewTitle: "All Photos",
           useDetailsView: false,
           selectCircleStrokeColor: "#000000",
@@ -1323,7 +1587,13 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
     if (!mounted) return;
 
     setState(() {
-      images = resultList;
+      if(images.isEmpty ) {
+        images = resultList;
+      }
+      else if(images.isNotEmpty){
+        images.isEmpty;
+        images = resultList;
+      }
 //      final String _images = resultList.map((e){
 //        return e.getByteData().then((value) =>value.toString());
 //      }).toList().join(',');
@@ -1335,6 +1605,7 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
       print(images);
 
       _error = error;
+      showLoaderDialog(context);
       _saveimg();
     });
 
@@ -1351,40 +1622,57 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
 
       for(var i = 0 ; i <images.length; i++)
       {
-        var path2  = await FlutterAbsolutePath.getAbsolutePath(images[i].identifier);
-        var file = await getImgaeFilefromPath(path2);
-        var base64Image = base64Encode(file.readAsBytesSync());
+        final dir = await path_provider.getTemporaryDirectory();
+        var path  = await FlutterAbsolutePath.getAbsolutePath(images[i].identifier);
+        File file = await getImgaeFilefromPath(path);
         String fileExt = file.path.split('.').last;
-        files.add(AttendanceSheet(image: base64Image,extension: fileExt));
+        final targetpath = dir.absolute.path + "/" + _timestamp1() + ".jpg" ;
+        var filecompressed;
+        final compressedImage = await FlutterImageCompress.compressAndGetFile(
+            file.absolute.path,
+            targetpath,
+            // minWidth: 240,
+            // minHeight: 240,
+            quality: 50);
 
-//          List<int> imgdata = byteData.buffer.asInt8List();
-//          file = base64.encode(imgdata);
-//          String fi = file ;
-
-        setState(()  {
-//      _video = imageFile;
-          _AddFieldActivity.images = files;
-
+        setState(() {
+          filecompressed = compressedImage;
         });
 
+        var base64Image = base64Encode(filecompressed.readAsBytesSync());
+        files.add(AttachmentsList(image: base64Image,extension: fileExt));
+        print(files.length);
+        imagescount = files.length.toString();
+
       }
+
+      setState(()  {
+//      _video = imageFile;
+        _AddFieldActivity.images = files;
+        imagesPressed = false;
+
+      });
+      Navigator.pop(this.context);
     }
   }
 
 
   Future<void> loadAttendance() async {
+
+    attdncfiles = [];
+    attachimagescount = '';
     List<Asset> resultList = <Asset>[];
     String error = 'No Error Detected';
 
     try {
       resultList = await MultiImagePicker.pickImages(
-        maxImages: 300,
-        enableCamera: true,
+        maxImages: 6,
+        enableCamera: false,
         selectedAssets: attendanceimages,
         cupertinoOptions: CupertinoOptions(takePhotoIcon: "chat"),
         materialOptions: MaterialOptions(
           actionBarColor: "#abcdef",
-          actionBarTitle: "Example App",
+          actionBarTitle: "SSEP",
           allViewTitle: "All Photos",
           useDetailsView: false,
           selectCircleStrokeColor: "#000000",
@@ -1399,9 +1687,17 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
     // message was in flight, we want to discard the reply rather than calling
     // setState to update our non-existent appearance.
     if (!mounted) return;
-
     setState(() {
       attendanceimages = resultList;
+      // if(attendanceimages.isEmpty) {
+      //   attendanceimages = resultList;
+      // }
+      // else if (attendanceimages.isNotEmpty){
+      //   attendanceimages.isEmpty;
+      //   attendanceimages= resultList;
+      // }
+
+
 //      final String _images = resultList.map((e){
 //        return e.getByteData().then((value) =>value.toString());
 //      }).toList().join(',');
@@ -1413,39 +1709,56 @@ class _FieldActivityScreen extends State<FieldActivityScreen> {
       print(attendanceimages);
 
       _error = error;
+      showLoaderDialog(context);
       _saveimgAttdnc();
     });
 
   }
 
-  getImgaeFilefromPathAttdnc (String path) async{
-    final filee = File(path);
-    return filee;
+  getImgaeFilefromPathAttdnc (String path2) async{
+    final filee2 = File(path2);
+    return filee2;
   }
 
   _saveimgAttdnc () async{
     if(attendanceimages != null)
     {
-
       for(var i = 0 ; i <attendanceimages.length; i++)
       {
+        final dir2 = await path_provider.getTemporaryDirectory();
         var path2  = await FlutterAbsolutePath.getAbsolutePath(attendanceimages[i].identifier);
-        var file = await getImgaeFilefromPathAttdnc(path2);
-        var base64Image = base64Encode(file.readAsBytesSync());
-        String fileExt = file.path.split('.').last;
-        attdncfiles.add(AttendanceSheet(image: base64Image,extension: fileExt));
+        File file2 = await getImgaeFilefromPathAttdnc(path2);
 
-//          List<int> imgdata = byteData.buffer.asInt8List();
-//          file = base64.encode(imgdata);
-//          String fi = file ;
+        String fileExt2 = file2.path.split('.').last;
 
-        setState(()  {
-//      _video = imageFile;
-          _AddFieldActivity.attendanceSheet = attdncfiles;
+        final targetpath2 = dir2.absolute.path + "/" + _timestamp2() + ".jpg" ;
+        var filecompressed2;
+        final compressedImage2 = await FlutterImageCompress.compressAndGetFile(
+            file2.absolute.path,
+            targetpath2,
+            // minWidth: 240,
+            // minHeight: 240,
+            quality: 70);
 
+        setState(() {
+          filecompressed2 = compressedImage2;
         });
 
+
+        var base64Image2 = base64Encode(filecompressed2.readAsBytesSync());
+        attdncfiles.add(AttendanceSheets(image: base64Image2,extension: fileExt2));
+        print(attdncfiles.length);
+        attachimagescount = attdncfiles.length.toString();
+
       }
+
+      setState(()  {
+//      _video = imageFile;
+        _AddFieldActivity.attendanceSheet = attdncfiles ;
+        attendancePressed = false;
+
+      });
+      Navigator.pop(this.context);
     }
   }
 

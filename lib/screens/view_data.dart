@@ -83,7 +83,7 @@ class _SingleJobRecord extends State<SingleJobRecord> {
 
 
     var result = await http.get(
-      apiUrl, headers: { 'Content-type': 'application/json',
+      Uri.parse(apiUrl), headers: { 'Content-type': 'application/json',
       'Accept': 'application/json',HttpHeaders.authorizationHeader: token},);
     var response = json.decode(result.body);
 

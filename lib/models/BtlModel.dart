@@ -29,6 +29,8 @@ class Datum {
     this.createdAt,
     this.updatedAt,
     this.createdByUser,
+    this.createdByUserId,
+    this.do_ID,
     this.assignedToUser,
     this.department,
     this.status,
@@ -54,6 +56,8 @@ class Datum {
   String createdAt;
   DateTime updatedAt;
   User createdByUser;
+  User createdByUserId;
+  String do_ID;
   User assignedToUser;
   dynamic department;
   Status status;
@@ -79,6 +83,8 @@ class Datum {
     createdAt: json["created_at"],
     updatedAt: DateTime.parse(json["updated_at"]),
     createdByUser: User.fromMap(json["created_by_user"]),
+    createdByUserId: User.fromMap(json["created_by_user"]),
+    do_ID: json["DO_id"],
     assignedToUser: User.fromMap(json["assigned_to_user"]),
     department: json["department"],
     status: Status.fromMap(json["status"]),
@@ -105,6 +111,8 @@ class Datum {
     "created_at": createdAt,
     "updated_at": updatedAt.toIso8601String(),
     "created_by_user": createdByUser.toMap(),
+    "created_by_user_id": createdByUser.id,
+    "DO_id": do_ID,
     "assigned_to_user": assignedToUser.toMap(),
     "department": department,
     "status": status.toMap(),

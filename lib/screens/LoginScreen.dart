@@ -1,205 +1,14 @@
 //
-import 'package:flutter/material.dart';
-
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'file:///C:/Users/user/AndroidStudioProjects/ssep_new/lib/screens/btl_records.dart';
-//
-//
-//class LoginPage extends StatefulWidget {
-//  @override
-//  _State createState() => _State();
-//}
-//class _State extends State<LoginPage> {
-//  TextEditingController nameController = new TextEditingController();
-//  TextEditingController passwordController = new TextEditingController();
-//  bool _isLoading = false;
-//
-//  @override
-//  Widget build(BuildContext context) {
-//    final logo = Hero(
-//      tag: 'hero',
-//      child: CircleAvatar(
-//        backgroundColor: Colors.transparent,
-//        radius: 48.0,
-//        child: Image.asset('assets/Sindh_logo.png'),
-//      ),
-//    );
-//    return Scaffold(
-//        appBar: AppBar(
-//          title: Text('Sindh TB Notification'),
-//        ),
-//
-//        body: Padding(
-//            padding: EdgeInsets.all(10),
-//
-//            child: ListView(
-//
-//              children: <Widget>[
-//                Container(
-//
-//                    alignment: Alignment.center,
-//                    padding: EdgeInsets.all(10),
-//
-//                    child: Column(
-//                      children: <Widget>[
-//                        Image.asset(
-//                          'assets/Sindh_logo.png',
-//                          width: 200,
-//                          height: 400,
-//                        ),
-//                      ],
-//                    )),
-//
-//
-//                Container(
-//
-//                    alignment: Alignment.center,
-//                    padding: EdgeInsets.all(10),
-//
-//                    child:  Column(
-//                      children: <Widget>[
-//                        Text(
-//                          'Sindh TB Notification System',
-//                          style: TextStyle(
-//                              color: Colors.blue,
-//                              fontWeight: FontWeight.w500,
-//                              fontSize: 25),
-//                        ),
-//                        Text(
-//                          'Sindh TB Notification System',
-//                          style: TextStyle(
-//                              color: Colors.blue,
-//                              fontWeight: FontWeight.w500,
-//                              fontSize: 25),
-//                        ),
-//                        Text(
-//                          'Sindh TB Notification System',
-//                          style: TextStyle(
-//                              color: Colors.blue,
-//                              fontWeight: FontWeight.w500,
-//                              fontSize: 25),
-//                         )
-//
-//
-//                      ],
-//                    )
-//                   ),
-//                Container(
-//                    alignment: Alignment.center,
-//                    padding: EdgeInsets.fromLTRB(250, 0, 250, 0),
-//                    child: Text(
-//                      'Login',
-//                      style: TextStyle(fontSize: 20),
-//                    )),
-//                Container(
-//                  padding: EdgeInsets.fromLTRB(250, 0, 250, 0),
-//                  child: TextField(
-//                    controller: nameController,
-//                    decoration: InputDecoration(
-//                      border: OutlineInputBorder(),
-//                      labelText: 'Email',
-//                    ),
-//                  ),
-//                ),
-//                Container(
-//                  padding: EdgeInsets.fromLTRB(250, 0, 250, 0),
-//                  child: TextField(
-//                    obscureText: true,
-//                    controller: passwordController,
-//                    decoration: InputDecoration(
-//                      border: OutlineInputBorder(),
-//                      labelText: 'Password',
-//                    ),
-//                  ),
-//                ),
-//                FlatButton(
-//                  onPressed: () {
-//                    //forgot password screen
-//                  },
-//                  textColor: Colors.blue,
-//                  child: Text('Forgot Password'),
-//                ),
-//
-//
-//                Container(
-//                    height: 50,
-//                    padding: EdgeInsets.fromLTRB(250, 0, 250, 0),
-//                    child: RaisedButton(
-//
-//                      textColor: Colors.white,
-//                      color: Colors.blue,
-//                      child: Text('Login'),
-//                      onPressed: () {
-//                        setState(() {
-//                          _isLoading = true;
-//                        });
-//                        Navigator.push(
-//                          context,
-//                          MaterialPageRoute(
-//                              builder: (context) => UserList()),
-//                        );
-////                        signIn(nameController.text,passwordController.text);
-//                        print(nameController.text);
-//                        print(passwordController.text);
-//                      },
-//                    ))
-//
-//
-////                Container(
-////                    child: Row(
-////                      children: <Widget>[
-////                        Text('Does not have account?'),
-////                        FlatButton(
-////                          textColor: Colors.blue,
-////                          child: Text(
-////                            'Sign in',
-////                            style: TextStyle(fontSize: 20),
-////                          ),
-////                          onPressed: () {
-////                            //signup screen
-////                          },
-////                        )
-////                      ],
-////                      mainAxisAlignment: MainAxisAlignment.center,
-////                    ))
-//              ],
-//            )));
-//  }
-//}
-
-
-//  signIn (String email, password) async {
-//    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-//    Map data = {
-//      'email': email,
-//      'password': pass
-//    };
-//    var jsonResponse = null;
-//    var response = await http.post("YOUR_BASE_URL", body: data);
-//    if(response.statusCode == 200) {
-//      jsonResponse = json.decode(response.body);
-//      if(jsonResponse != null) {
-//        setState(() {
-//          _isLoading = false;
-//        });
-//        sharedPreferences.setString("token", jsonResponse['token']);
-//        Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (BuildContext context) => MainPage()), (Route<dynamic> route) => false);
-//      }
-//    }
-//    else {
-//      setState(() {
-//        _isLoading = false;
-//      });
-//      print(response.body);
-//    }
-//  },
-
 import 'package:ssepnew/consts.dart';
-import 'package:ssepnew/forgotpassword.dart';
 import 'package:ssepnew/models/loginModel.dart';
-import 'file:///C:/Users/user/AndroidStudioProjects/ssep_new/lib/repositories/loginRepository.dart';
-import 'package:ssepnew/themes.dart';
+import 'package:ssepnew/repositories/loginRepository.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -226,7 +35,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return SafeArea(child:  Scaffold(
+
         key: _scaffoldKey,
         backgroundColor: Colors.white,
 //        resizeToAvoidBottomInset: false,
@@ -943,25 +753,51 @@ class _LoginScreenState extends State<LoginScreen> {
               return new Stack(
                 children: <Widget>[
                   // The containers in the background
-//                  new Column(
-//                    children: <Widget>[
-//                      new Container(
-//                        height: MediaQuery.of(context).size.height * .50,
-//                        color: Colors.blue,
-//                      ),
-//                      new Container(
-//                        height: MediaQuery.of(context).size.height * .50,
-//                        color: Colors.white,
-//                      )
-//                    ],
-//                  ),
+                  SingleChildScrollView(
+                    child: new Column(
+                      children: <Widget>[
+                        new Container(
+                          height: MediaQuery.of(context).size.height * .50,
+                          color: themeblue,
+                        ),
+                        new Container(
+                          height: MediaQuery.of(context).size.height * .50,
+                          color: Colors.white,
+                        )
+                      ],
+                    ),
+                  ),
+
 
                   Center(
                     child: FractionallySizedBox(
-                      widthFactor: 0.6,
+                      // widthFactor: 0.6,
+
                       child: SingleChildScrollView(
                         child: Container(
-                          color: Colors.white,
+                          width: 360.0,
+                          // width: MediaQuery.of(context).size.width * 0.60,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(7.0),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0x80000000),
+                                blurRadius: 15.0,
+                                offset: Offset(0.0, 5.0),
+                              ),
+                            ],
+                            color: Colors.white,
+                            //   gradient: LinearGradient(
+                            //   begin: Alignment.topLeft,
+                            //   end: Alignment.bottomRight,
+                            //   colors: [
+                            //     Color(0xFF0000FF),
+                            //     Color(0xFFFF3500),
+                            //   ],
+                            // )
+
+                          ),
+
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             mainAxisSize: MainAxisSize.max,
@@ -969,51 +805,61 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: <Widget>[
 
                               // Logo image of login screen
-                              Image.asset(
-                                'assets/Solar_Logo.png',
+                              Container(
+                                height:MediaQuery.of(context).size.height/6 ,
+                                width: MediaQuery.of(context).size.width/2,
+                                padding: EdgeInsets.only(left: 25.0,right: 25.0,top: 25.0,bottom: 25.0),
+                                child:Image.asset(
+                                  'assets/Solar_Logo.png',
+                                ),
                               ),
 
-                              SizedBox(height: 16.0,),
+
+                              // SizedBox(height: 16.0,),
 
                               new Container(
 
                                 child: Theme(
                                   child:
+                                  Container(
+                                    padding: EdgeInsets.only(right: 15.0,left: 15.0,bottom: 15.0),
+                                    child:new TextField(
+                                      controller: emailController,
+                                      style: TextStyle(color: Colors.blue),
 
-                                  new TextField(
-                                    controller: emailController,
-                                    style: TextStyle(color: Colors.blue),
-
-                                    decoration: new InputDecoration(
+                                      decoration: new InputDecoration(
 
 
-                                      labelStyle: TextStyle(
-                                          color: Colors.blue
-                                      ),
-                                      errorStyle: TextStyle(
-                                          color: Colors.red
-                                      ),
-                                      enabledBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.blue),
-                                      ),
-                                      focusedBorder: UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.blue),
-                                      ),
-                                      border: UnderlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.red),
-                                      ),
-                                      prefixIcon: Icon(Icons.person_outline,color: Colors.blue),
-                                      labelText: 'Email',
-                                      hintText: "Enter your email",
-                                      hintStyle: TextStyle(color: Colors.blue),
+                                        labelStyle: TextStyle(
+                                            color: Colors.blue
+                                        ),
+                                        errorStyle: TextStyle(
+                                            color: Colors.red
+                                        ),
+                                        enabledBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.blue),
+                                        ),
+                                        focusedBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.blue),
+                                        ),
+                                        border: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.red),
+                                        ),
+                                        prefixIcon: Icon(Icons.person_outline,color: Colors.blue),
+                                        labelText: 'Email',
+                                        hintText: "Enter your email",
+                                        hintStyle: TextStyle(color: Colors.blue),
 
+                                      ),
                                     ),
                                   ),
+
                                   data: Theme.of(context).copyWith(primaryColor: Colors.blue),
                                 ),
                               ),
-                              SizedBox(height: 8.0,),
+                              SizedBox(height: 0.0,),
                               new Container(
+                                padding: EdgeInsets.only(right: 15.0,left: 15.0,bottom: 15.0),
 //                                child: Theme(
                                 child:
                                 new TextField(
@@ -1053,7 +899,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
 
                               // Forgot password
-                              SizedBox(height: 16.0,),
+                              SizedBox(height: 0.0,),
 //                              GestureDetector(
 //                                child: Align(
 //                                  alignment: Alignment.centerRight,
@@ -1072,34 +918,50 @@ class _LoginScreenState extends State<LoginScreen> {
 //                                },
 //                              ),
 
-                              SizedBox(height: 16.0,),
+                              SizedBox(height: 0.0,),
 
                               // Button
                               InkWell(
                                 child: Container(
-                                  height: 55.0,
-                                  padding: EdgeInsets.all(12.0),
-                                  color: Colors.blue,
-                                  child: Center(
-                                    child: loginIsTapped? Center(
-                                        child: SizedBox(
-                                          width: 20.0,
-                                          height: 20.0,
-                                          child: CircularProgressIndicator(
-                                            backgroundColor: Colors.white,
-
-                                            valueColor: new AlwaysStoppedAnimation<Color>(Theme.of(context).accentColor),
-                                            strokeWidth: 3.0,
-                                          ),
-                                        )
-                                    ):Text(
-                                      "LOGIN",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 17,
+                                  margin: EdgeInsets.only(top: 20.0,bottom: 20.0,right: 20.0,left: 20.0),
+                                  padding: EdgeInsets.only(top: 10.0,bottom: 10.0),
+                                  width: MediaQuery.of(context).size.width,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(5.0),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Color(0x80000000),
+                                        blurRadius: 15.0,
+                                        offset: Offset(0.0, 5.0),
                                       ),
-                                    ),
+                                    ],
+                                    color: themeblue,
+                                    //   gradient: LinearGradient(
+                                    //   begin: Alignment.topLeft,
+                                    //   end: Alignment.bottomRight,
+                                    //   colors: [
+                                    //     Color(0xFF0000FF),
+                                    //     Color(0xFFFF3500),
+                                    //   ],
+                                    // )
+
+                                  ),
+
+
+                                  child: Center(
+                                      child: loginIsTapped? Center(
+                                          child: SizedBox(
+                                            width: 20.0,
+                                            height: 20.0,
+                                            child: CircularProgressIndicator(
+                                              backgroundColor: Colors.white,
+
+                                              valueColor: new AlwaysStoppedAnimation<Color>(Theme.of(context).accentColor),
+                                              strokeWidth: 3.0,
+                                            ),
+                                          )
+                                      ):                Text('LOGIN ',textAlign: TextAlign.center,style: TextStyle(fontSize: 14.0,color: Colors.white,fontWeight: FontWeight.w500))
+
                                   ),
                                 ),
 
@@ -1154,7 +1016,23 @@ class _LoginScreenState extends State<LoginScreen> {
 //                                                            Btl_Record_List()),);
 
                                     }).catchError((error){
-                                      _showToast(context, error);
+                                      if(error is SocketException){
+                                        //treat SocketException
+                                        Fluttertoast.showToast(
+                                            msg: "No internet connection available",
+                                            toastLength: Toast.LENGTH_SHORT,
+                                            gravity: ToastGravity.BOTTOM,
+                                            timeInSecForIosWeb: 1,
+                                            backgroundColor: Colors.black54,
+                                            textColor: Colors.white,
+                                            fontSize: 16.0
+                                        );
+                                      }
+                                      else if(error is TimeoutException){
+                                        //treat TimeoutException
+                                        print("Timeout exception: ${error.toString()}");
+                                      }
+                                      else _showToast(context, error);
 
                                     }).whenComplete((){
                                       setState(() {
@@ -1167,6 +1045,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 },
 
                               ),
+
                             ],
 
                           ),
@@ -1184,7 +1063,8 @@ class _LoginScreenState extends State<LoginScreen> {
             }
         )
 
-    );
+    ));
+
   }
 
   void _showToast(BuildContext context, String message) {

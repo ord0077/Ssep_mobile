@@ -20,6 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ssepnew/CustomAppBar.dart';
 import 'package:ssepnew/consts.dart';
 import 'package:ssepnew/models/BeneficiaryFormModel.dart';
+import 'package:ssepnew/models/BtlActivity_model.dart';
 import 'package:ssepnew/models/SurveyModel.dart';
 import 'package:ssepnew/screens/btl_records.dart';
 import 'package:ssepnew/screens/purchased.dart';
@@ -52,12 +53,18 @@ class _BeneficiaryForm extends State<BeneficiaryForm> {
 
   String file;
   final picker = ImagePicker();
-  final picker2 = ImagePicker();
+  // final picker2 = ImagePicker();
 
   final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final _AddBeneficiary = BeneficiaryFormModel();
+  List<Asset> images = <Asset>[];
+  String _error = 'No Error Dectected';
+  List<AttachmentsClass> files = [] ;
+  bool  galaryPressed = false;
+  bool  CameraPressed = false;
+  List<String> attachnames = [];
 
   TextEditingController nameController = TextEditingController();
   TextEditingController  fatherController = TextEditingController();
@@ -68,9 +75,9 @@ class _BeneficiaryForm extends State<BeneficiaryForm> {
   TextEditingController villageController = TextEditingController();
   TextEditingController activityController = TextEditingController();
   TextEditingController supplierController = TextEditingController();
-  List<Asset> images = <Asset>[];
-  String _error = 'No Error Dectected';
-  List<Attachment> files = [];
+  TextEditingController LocationController = TextEditingController();
+
+
 
 
   @override
@@ -84,6 +91,7 @@ class _BeneficiaryForm extends State<BeneficiaryForm> {
         villageController.dispose();
         activityController.dispose();
         supplierController.dispose();
+        LocationController.dispose();
 
     super.dispose();
   }
@@ -93,9 +101,9 @@ class _BeneficiaryForm extends State<BeneficiaryForm> {
     //Return int
     setState(() {
       userName = (prefs.getString('user_name') ?? '');
+      Value_name =(prefs.getString('task_title') ?? '');
     });
   }
-
 
 
 
@@ -103,24 +111,12 @@ class _BeneficiaryForm extends State<BeneficiaryForm> {
   void initState() {
     setState(() {
       FetchData();
-      fetchname();
-      getLocation();
-
-
+      // getLocation();
     });
     super.initState();
   }
 
-  fetchname()async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    //Return int
-    String Value_n = prefs.getString('task_title');
-    setState(() {
-      Value_name = Value_n;
-    });
 
-    return Value_name;
-  }
 
   bool _validate = false;
 
@@ -133,31 +129,37 @@ class _BeneficiaryForm extends State<BeneficiaryForm> {
         onWillPop: () {
       return _moveToSignInScreen(context);
     },
-    child: new Scaffold(
+    child: SafeArea(
+      child: new Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.white,
-      appBar: CustomAppBar(   height: 200,
+      appBar: CustomAppBar(   height: 140,
 
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
 
             children: [
               Container(
-                  height: 100.0,
-                  padding: const EdgeInsets.only(left: 20.0,top: 20.0,right: 20.0,bottom: 8.0,),
+                  height: 60.0,
+                  padding: const EdgeInsets.only(left: 10.0,top: 10.0,right: 10.0,bottom: 8.0,),
 
 
 
                   child: Row(
                       children: [
-
-                        Text('Activity Name: ',style: TextStyle( fontSize: 17,color: Colors.white),),
                         Container(
-                          constraints: BoxConstraints(minWidth: 20, maxWidth: 200),
+                          constraints: BoxConstraints(minWidth: 20, maxWidth: 100),
+
+                          child:  AutoSizeText('Activity Name: ',style: TextStyle( color: Colors.white ),minFontSize: 8,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis),
+                        ),
+                        Container(
+                          constraints: BoxConstraints(minWidth: 20, maxWidth: 100),
                           child:  AutoSizeText(
                             Value_name ?? '',
-                            style: TextStyle(fontSize: 17,color: Colors.white),
-                            minFontSize: 18,
+                            style: TextStyle(color: Colors.white ,fontWeight: FontWeight.w500),
+                            minFontSize: 10,
                             maxLines: 2,
 
                             overflow: TextOverflow.ellipsis,
@@ -168,14 +170,22 @@ class _BeneficiaryForm extends State<BeneficiaryForm> {
                         Container(
                             child: Row(
                               children: <Widget>[
-                                Text('Logged in user  : ',style: TextStyle( fontSize: 17,color: Colors.white),),
+
                                 Container(
-                                  constraints: BoxConstraints(minWidth: 20, maxWidth: 200),
+                                  constraints: BoxConstraints(minWidth: 20, maxWidth: 100),
+
+                                  child:  AutoSizeText('Logged in: ',style: TextStyle( color: Colors.white ),minFontSize: 8,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis),
+                                ),
+
+                                Container(
+                                  constraints: BoxConstraints(minWidth: 20, maxWidth:100),
                                   child:  AutoSizeText(
 
-                                    userName??'default value' ,
-                                    style: TextStyle(fontSize: 17,color: Colors.white),
-                                    minFontSize: 18,
+                                    userName??'-----' ,
+                                    style: TextStyle(color: Colors.white),
+                                    minFontSize: 8,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
 //                       textAlign: TextAlign.right,
@@ -192,7 +202,7 @@ class _BeneficiaryForm extends State<BeneficiaryForm> {
                   )
               ),
               Container(
-                  height: 100.0,
+                  height: 80.0,
                   padding: const EdgeInsets.only(left: 20.0,top: 20.0,right: 20.0,bottom: 8.0,),
                   color: Colors.black54,
 
@@ -201,10 +211,7 @@ class _BeneficiaryForm extends State<BeneficiaryForm> {
                   child: Row(
                       children: [
 
-                        Text('Beneficiary Referrel Form: ',style: TextStyle( fontSize: 30,color: Colors.white),),
-
-
-//
+                        Text('Beneficiary Referral Form ',style: TextStyle( fontSize: 23,color: Colors.white),),
 
 
                       ]
@@ -671,53 +678,116 @@ class _BeneficiaryForm extends State<BeneficiaryForm> {
                                   },
 
                                 ),
+                                // SizedBox(height: 20.0,),
+                                // Container(
+                                //   padding: new EdgeInsets.only(top: 20.0,),
+                                //   alignment: Alignment.topLeft,
+                                //   child:  Text(
+                                //     'Location',
+                                //     style: TextStyle(fontSize: 16, color: myColor,
+                                //     ),
+                                //   ),
+                                // ),
+                                // SizedBox(height: 15.0,),
+                                // Container(
+                                //     child:Text(_AddBeneficiary.mapLocation ?? "no location" ,style: TextStyle(fontWeight: FontWeight.w400,color: Colors.black),)
+                                //
+                                // ),
                                 SizedBox(height: 20.0,),
-                                Container(
-                                  padding: new EdgeInsets.only(top: 20.0,),
-                                  alignment: Alignment.topLeft,
-                                  child:  Text(
-                                    'Location',
-                                    style: TextStyle(fontSize: 16, color: myColor,
+                                TextFormField(
+//                      controller: emailController,
+
+                                  style: TextStyle(color: Colors.grey),
+
+                                  decoration: new InputDecoration(
+
+                                    labelStyle: TextStyle(
+                                        color: Colors.grey
                                     ),
+                                    errorStyle: TextStyle(
+                                        color: Colors.red
+                                    ),
+                                    enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(color: Colors.black12),
+                                    ),
+                                    focusedBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(color: Colors.grey),
+                                    ),
+                                    border: UnderlineInputBorder(
+                                      borderSide: BorderSide(color: Colors.red),
+                                    ),
+//                        prefixIcon: Icon(Icons.person_outline,color: Colors.white),
+                                    labelText: 'Location',
+//                                   hintText: "Name Head of Household",
+                                    hintStyle: TextStyle(color: Colors.grey),
+
                                   ),
-                                ),
-                                SizedBox(height: 15.0,),
-                                Container(
-                                    child:Text(_AddBeneficiary.mapLocation ?? "no location" ,style: TextStyle(fontWeight: FontWeight.w400,color: Colors.black),)
+                                  // validator: (val) {
+                                  //   if (val.isEmpty) {
+                                  //     return 'Field is required';
+                                  //   }
+                                  //   if (val.length < 2) {
+                                  //     return 'Field is too short';
+                                  //   }
+                                  //   return null;
+                                  // },
+                                  controller: LocationController,
+                                  onChanged: (value){
+                                    setState(() {
+                                      _AddBeneficiary.mapLocation = LocationController.text;
+                                      print(LocationController);
+                                    });
+                                  },
 
                                 ),
                                 SizedBox(height: 20.0,),
-                                Container(
-                                  child: file ==null
-                                      ? new Text("No attachment!",style: TextStyle(fontSize: 20.0),)
-                                      : new Text("attachment added",style: TextStyle(fontSize: 20.0, color: Colors.green)),
-                                ),
-                                Container(
-
-                                    child:  Row(
-
-                                      children: <Widget>[
-                                        RaisedButton(
-                                          color: myColor,
-                                          child: Icon(Icons.image, color: Colors.white,),
-                                          onPressed: getImageGallery,
-                                        ),
-                                        RaisedButton(
-                                          color: myColor,
-
-                                          child: Icon(Icons.camera_alt,color: Colors.white,),
-                                          onPressed: getImageCamera,
-                                        ),
-//                                              RaisedButton(
-//                                                child: Text("UPLOAD video"),
-//                                                onPressed:(){
-////                                                  uploadVideo(_video);
-//                                                },
-//                                              ),
-
-                                      ],
-                                    )
-                                ),
+//                                 Container(
+//                                   child: files.isEmpty
+//                                       ? new Text("No attachment!",style: TextStyle(fontSize: 20.0),)
+//                                       : new Text("attachment added",style: TextStyle(fontSize: 20.0,color: Colors.green)),
+//                                 ),
+//                                 SizedBox(height: 5.0,),
+//                                 Container(
+//                                   child: Text(attachnames.join(", ") ,style: new TextStyle(fontSize: 16.0,fontWeight:FontWeight.w400,color: Color.fromRGBO(113, 113, 113, 1)) ),
+//                                 ),
+//                                 Container(
+//
+//                                     child:  Row(
+//
+//                                       children: <Widget>[
+//                                         ElevatedButton(
+//                                           style: ButtonStyle(
+//                                               backgroundColor: (galaryPressed) ? MaterialStateProperty.all(Colors.red)
+//                                                   : MaterialStateProperty.all(themeblue),
+//                                               padding: MaterialStateProperty.all(EdgeInsets.only(left: 30.0,right: 30.0,top: 7.0,bottom: 7.0)),
+//                                               textStyle: MaterialStateProperty.all(TextStyle(fontSize: 30))),
+//
+//                                           child: Icon(Icons.image, color: Colors.white,),
+//                                           onPressed: loadAssets,
+//                                         ),
+//                                         SizedBox(width: 10.0,),
+//                                         ElevatedButton(
+//                                           style: ButtonStyle(
+//                                               backgroundColor: (galaryPressed) ? MaterialStateProperty.all(Colors.red)
+//                                                   : MaterialStateProperty.all(themeblue),
+//                                               padding: MaterialStateProperty.all(EdgeInsets.only(left: 30.0,right: 30.0,top: 7.0,bottom: 7.0)),
+//                                               textStyle: MaterialStateProperty.all(TextStyle(fontSize: 30))),
+//
+//                                           child: Icon(Icons.camera_alt,color: Colors.white,),
+//                                           onPressed:
+//                                           getImageCamera,
+//                                         ),
+// //                                              RaisedButton(
+// //                                                child: Text("UPLOAD video"),
+// //                                                onPressed:(){
+// ////                                                  uploadVideo(_video);
+// //                                                },
+// //                                              ),
+//
+//                                       ],
+//                                     )
+//                                 ),
+//                                 SizedBox(height: 15.0,),
 
                               ],
                             ),
@@ -744,11 +814,19 @@ class _BeneficiaryForm extends State<BeneficiaryForm> {
                             onPressed: () {
 //                                   Validate returns true if the form is valid, or false
 //                                   otherwise.
-                              if (_formKey.currentState.validate()) {
+//                               if (_formKey.currentState.validate() && files.isNotEmpty ) {
+                                if (_formKey.currentState.validate() ) {
                                 showLoaderDialog(context);
                                 _submitForm();
-
                               }
+                              // else if (files.isEmpty  ){
+                              //
+                              //   setState(()
+                              //   {
+                              //     galaryPressed = true;
+                              //   });
+                              // }
+
                             },
                             child: Container(
 //                                    height: MediaQuery.of(context).size.height,
@@ -775,6 +853,8 @@ class _BeneficiaryForm extends State<BeneficiaryForm> {
       ),
 //      drawer: CustomerDrawer(),
     )
+    ),
+
     );
   }
   Future<void> _submitForm() async {
@@ -799,10 +879,10 @@ class _BeneficiaryForm extends State<BeneficiaryForm> {
     String tokenn = ( prefs.getString('token'));
     String token = 'Bearer '+ tokenn;
 
-    final uri = 'https://backend.dev-ssep.tk/api/beneficiaryform';
+    final uri = baseURL + 'beneficiaryform';
 //    _onLoading();
     http.Response response = await http.post(
-      uri, headers: { 'Content-type': 'application/json',
+      Uri.parse(uri), headers: { 'Content-type': 'application/json',
       'Accept': 'application/json', HttpHeaders.authorizationHeader: token },body: (json.encode(_AddBeneficiary.toMap())),
     );
     Navigator.pop(this.context);
@@ -946,132 +1026,122 @@ class _BeneficiaryForm extends State<BeneficiaryForm> {
       },
     );
   }
-  getLocation() async {
-    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-//    String posi  = position.toString();
-    Coordinates coordinates = Coordinates(position.latitude,position.longitude);
-    var location = await Geocoder.local.findAddressesFromCoordinates(coordinates);
-//    print(location);
-    var first = location.first;
 
-    setState(() {
-      _AddBeneficiary.mapLat = position.latitude.toString();
-      _AddBeneficiary.mapLong = position.longitude.toString();
-      _AddBeneficiary.mapLocation = first.addressLine;
-    });
-    print("${first.addressLine}");
-
-//    print(MapAddress);
-  }
-
-//  Future<void> loadAssets() async {
-//    List<Asset> resultList = <Asset>[];
-//    String error = 'No Error Detected';
+//   getLocation() async {
+//     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+// //    String posi  = position.toString();
+//     Coordinates coordinates = Coordinates(position.latitude,position.longitude);
+//     var location = await Geocoder.local.findAddressesFromCoordinates(coordinates);
+// //    print(location);
+//     var first = location.first;
 //
-//    try {
-//      resultList = await MultiImagePicker.pickImages(
-//        maxImages: 300,
-//        enableCamera: true,
-//        selectedAssets: images,
-//        cupertinoOptions: CupertinoOptions(takePhotoIcon: "chat"),
-//        materialOptions: MaterialOptions(
-//          actionBarColor: "#abcdef",
-//          actionBarTitle: "Example App",
-//          allViewTitle: "All Photos",
-//          useDetailsView: false,
-//          selectCircleStrokeColor: "#000000",
-//        ),
-//      );
+//     setState(() {
+//       _AddBeneficiary.mapLat = position.latitude.toString();
+//       _AddBeneficiary.mapLong = position.longitude.toString();
+//       _AddBeneficiary.mapLocation = first.addressLine;
+//     });
+//     print("${first.addressLine}");
 //
-//    } on Exception catch (e) {
-//      error = e.toString();
-//    }
+// //    print(MapAddress);
+//   }
+//   Future getImageCamera() async{
+//     final pickedFile = await picker.getImage(source: ImageSource.camera);
+//     File imageFile = new File(pickedFile.path);
+//     var base64Image = base64Encode(imageFile.readAsBytesSync());
+//     String fileExt = imageFile.path.split('.').last;
 //
-//    // If the widget was removed from the tree while the asynchronous platform
-//    // message was in flight, we want to discard the reply rather than calling
-//    // setState to update our non-existent appearance.
-//    if (!mounted) return;
+//     attachnames.clear();
+//     attachnames.add(imageFile.path.split('/').last);
+//     files.add(AttachmentsClass(image: base64Image,extension: fileExt));
+// //    var videoFile = await ImagePicker.pickImage(source: ImageSource.camera);
+// //     List<int> videoBytes = imageFile.readAsBytesSync();
+// //     file = base64.encode(videoBytes);
+// //     String fi = "jpg,"+ file ;
+// //     print(fi);
+//     setState(()  {
 //
-//    setState(() {
-//      images = resultList;
-////      final String _images = resultList.map((e){
-////        return e.getByteData().then((value) =>value.toString());
-////      }).toList().join(',');
+//       _AddBeneficiary.attachment = files;
 //
-////      attch.insert(0, Attachment(image:images.getByteData.toString(),extension: "abc"));
+//     });
+//   }
+//   Future<void> loadAssets() async {
+//
+//     List<Asset> resultList = <Asset>[];
+//     String error = 'No Error Detected';
+//
+//     try {
+//       resultList = await MultiImagePicker.pickImages(
+//         maxImages: 6,
+//         enableCamera: false,
+//         selectedAssets: images,
+//         cupertinoOptions: CupertinoOptions(takePhotoIcon: "chat"),
+//         materialOptions: MaterialOptions(
+//           actionBarColor: "#abcdef",
+//           actionBarTitle: "SSEP",
+//           allViewTitle: "All Photos",
+//           useDetailsView: false,
+//           selectCircleStrokeColor: "#000000",
+//         ),
+//       );
+//
+//     } on Exception catch (e) {
+//       error = e.toString();
+//     }
+//
+//     // If the widget was removed from the tree while the asynchronous platform
+//     // message was in flight, we want to discard the reply rather than calling
+//     // setState to update our non-existent appearance.
+//     if (!mounted) return;
+//
+//     setState(() {
+//       images = resultList;
+// //      final String _images = resultList.map((e){
+// //        return e.getByteData().then((value) =>value.toString());
+// //      }).toList().join(',');
+//
+// //      attch.insert(0, Attachment(image:images.getByteData.toString(),extension: "abc"));
 //
 //
-////      _AddBeneficiary.attachment =_images;
-//      print(images);
+// //      _AddBeneficiary.attachment =_images;
+//       print(images);
 //
-//      _error = error;
-//      _saveimg();
-//    });
+//       _error = error;
+//       _saveimg();
+//     });
 //
-//  }
+//   }
 //
-//  getImgaeFilefromPath (String path) async{
-//    final filee = File(path);
-//    return filee;
-//  }
+//   getImgaeFilefromPath (String path) async{
+//     final filee = File(path);
+//     return filee;
+//   }
 //
-//  _saveimg () async{
-//    if(images != null)
-//      {
+//   _saveimg () async{
+//     if(images != null)
+//     {
+//       attachnames.clear();
+//       for(var i = 0 ; i <images.length; i++)
+//       {
+//         var path2  = await FlutterAbsolutePath.getAbsolutePath(images[i].identifier);
+//         var file = await getImgaeFilefromPath(path2);
+//         var base64Image = base64Encode(file.readAsBytesSync());
+//         String fileExt = file.path.split('.').last;
+//         attachnames.add(file.path.split('/').last);
+//         files.add(AttachmentsClass(image: base64Image,extension: fileExt));
 //
-//        for(var i = 0 ; i <images.length; i++)
-//        {
-//          var path2  = await FlutterAbsolutePath.getAbsolutePath(images[i].identifier);
-//          var file = await getImgaeFilefromPath(path2);
-//          var base64Image = base64Encode(file.readAsBytesSync());
-//          String fileExt = file.path.split('.').last;
-//          files.add(Attachment(image: base64Image,extension: fileExt));
+// //          List<int> imgdata = byteData.buffer.asInt8List();
+// //          file = base64.encode(imgdata);
+// //          String fi = file ;
 //
-////          List<int> imgdata = byteData.buffer.asInt8List();
-////          file = base64.encode(imgdata);
-////          String fi = file ;
+//         setState(()  {
+// //      _video = imageFile;
+//           _AddBeneficiary.attachment = files;
 //
-//          setState(()  {
-////      _video = imageFile;
-//      _AddBeneficiary.attachment = files;
+//         });
 //
-//          });
-//
-//        }
-//      }
-//  }
-
-  Future getImageCamera() async{
-    final pickedFile = await picker.getImage(source: ImageSource.camera);
-    File imageFile = new File(pickedFile.path);
-//    var videoFile = await ImagePicker.pickImage(source: ImageSource.camera);
-    List<int> videoBytes = imageFile.readAsBytesSync();
-    file = base64.encode(videoBytes);
-    String fi = "jpg,"+ file ;
-    print(fi);
-    setState(()  {
-//      _video = imageFile;
-      _AddBeneficiary.attachment = fi;
-
-    });
-  }
-
-  Future getImageGallery() async{
-    final pickedFile = await picker.getImage(source: ImageSource.gallery);
-    File imageFile = new File(pickedFile.path);
-    String fileExt = imageFile.path.split('.').last;
-//    String basename = basename(imageFile.path);
-    List<int> videoBytes = imageFile.readAsBytesSync();
-    file = base64.encode(videoBytes);
-    String fi = fileExt +","+ file ;
-    print(fi);
-    setState(()  {
-//      _video = imageFile;
-      _AddBeneficiary.attachment = fi;
-
-    });
-  }
-
+//       }
+//     }
+//   }
 
 }
 

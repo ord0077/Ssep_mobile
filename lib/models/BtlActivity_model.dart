@@ -60,7 +60,8 @@ class BtlActivityModel {
   String loadsheddingHours;
   String mocrofinanceload;
   String mfi;
-  String attachment;
+  // String attachment;
+  List<AttachmentsClass> attachment;
   String mapLat;
   String mapLong;
   String mapLocation;
@@ -88,7 +89,7 @@ class BtlActivityModel {
     loadsheddingHours: json["loadshedding_hours"],
     mocrofinanceload: json["mocrofinanceload"],
     mfi: json["mfi"],
-    attachment: json["attachment"],
+    attachment: List<AttachmentsClass>.from(json["attachment"].map((x) => AttachmentsClass.fromMap(x))),
     mapLat: json["map_lat"],
     mapLong: json["map_long"],
     mapLocation: json["map_location"],
@@ -117,9 +118,28 @@ class BtlActivityModel {
     "loadshedding_hours": loadsheddingHours,
     "mocrofinanceload": mocrofinanceload,
     "mfi": mfi,
-    "attachment": attachment,
+    "attachment": List<dynamic>.from(attachment.map((x) => x.toMap())),
     "map_lat": mapLat,
     "map_long": mapLong,
     "map_location": mapLocation,
+  };
+}
+class AttachmentsClass {
+  AttachmentsClass({
+    this.image,
+    this.extension,
+  });
+
+  String image;
+  String extension;
+
+  factory AttachmentsClass.fromMap(Map<String, dynamic> json) => AttachmentsClass(
+    image: json["image"],
+    extension: json["extension"],
+  );
+
+  Map<String, dynamic> toMap() => {
+    "image": image,
+    "extension": extension,
   };
 }

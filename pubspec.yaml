@@ -27,28 +27,33 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.0
-  shared_preferences: ^0.5.7+3
-  http: ^0.12.1
-  auto_size_text: ^2.1.0
+  cupertino_icons: any
+  shared_preferences:
+  http: any
+  auto_size_text: any
   flutter_spinkit: "^4.1.2"
-  splashscreen: ^1.2.0
-  flutter_launcher_icons: ^0.7.5
-  image_picker: ^0.6.7+4
-  progress_dialog: ^1.2.4
-  fluttertoast: ^7.0.2
-  geolocator: ^6.1.14
-  geocoder: ^0.2.1
+  splashscreen: any
+  flutter_launcher_icons: any
+  image_picker: any
+  progress_dialog: any
+  fluttertoast: any
+  geolocator: any
+  geocoder: any
   sqflite: any
   path: any
-  path_provider: any
-  multi_image_picker: ^4.7.15
-  flutter_absolute_path: ^1.0.6
+#  path_provider: any
+  multi_image_picker:
+  flutter_absolute_path: any
 #  camera: ^0.8.0
-  intl: ^0.16.1
-
-
-
+  intl: any
+  google_fonts:
+  flutter_downloader: ^1.6.0
+  permission_handler: ^7.1.0
+  path_provider: ^2.0.1
+  flutter_inappwebview: ^5.3.2
+  connectivity: ^3.0.3
+  flutter_statusbarcolor: any
+  flutter_image_compress: ^1.1.0
 
 
 dev_dependencies:
@@ -71,7 +76,11 @@ flutter:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
   assets:
+    - assets/index.html
+    - assets/style.css
+    - assets/connection_lost.jpg
     - assets/
+    - assets/Solar_Logo.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
